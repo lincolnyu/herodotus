@@ -37,29 +37,57 @@ namespace Herodotus
                     Collection.Clear();
                     break;
                 case NotifyCollectionChangedAction.Add:
-                    if (Collection is IList<T>)
+                {
+                    var list = Collection as IList<T>;
+                    if (list != null)
                     {
-                        var list = (IList<T>) Collection;
                         var index = NewStartingIndex;
                         foreach (var item in NewItems)
                         {
-                            list.Insert(index++, (T)item);                            
+                            list.Insert(index++, (T) item);
                         }
                     }
                     else
                     {
                         foreach (var item in NewItems)
                         {
-                            Collection.Add((T)item);
+                            Collection.Add((T) item);
                         }
                     }
                     break;
+                }
                 case NotifyCollectionChangedAction.Remove:
+                {
                     foreach (var item in OldItems)
                     {
                         Collection.Remove((T)item);
-                    }                        
+                    }
                     break;
+                }
+                case NotifyCollectionChangedAction.Replace:
+                {
+                    System.Diagnostics.Debug.Assert(OldItems.Count == NewItems.Count);
+                    var list = Collection as IList<T>;
+                    if (list != null && OldStartingIndex == NewStartingIndex)
+                    {
+                        for (var i = 0; i < OldItems.Count; i++)
+                        {
+                            list[NewStartingIndex + i] = (T)NewItems[i];
+                        }
+                    }
+                    else
+                    {
+                        foreach (var item in OldItems)
+                        {
+                            Collection.Remove((T) item);
+                        }
+                        foreach (var item in NewItems)
+                        {
+                            Collection.Add((T) item);
+                        }
+                    }
+                    break;
+                }
             }
         }
 
@@ -73,7 +101,7 @@ namespace Herodotus
                 case NotifyCollectionChangedAction.Add:
                     foreach (var item in NewItems)
                     {
-                        Collection.Remove((T)item);
+                        Collection.Remove((T) item);
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
@@ -81,21 +109,56 @@ namespace Herodotus
                     // TODO review and test this
                     if (Collection is IList<T>)
                     {
-                        var list = (IList<T>)Collection;
+                        var list = (IList<T>) Collection;
                         var index = OldStartingIndex;
-                        foreach (var item in OldItems)
+                        if (index >= 0 && index <= list.Count)
                         {
-                            list.Insert(index++, (T)item);
+                            foreach (var item in OldItems)
+                            {
+                                list.Insert(index++, (T) item);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var item in OldItems)
+                            {
+                                list.Add((T)item);
+                            }
                         }
                     }
                     else
                     {
                         foreach (var item in OldItems)
                         {
-                            Collection.Add((T)item);
+                            Collection.Add((T) item);
                         }
                     }
                     break;
+                case NotifyCollectionChangedAction.Replace:
+                {
+                    System.Diagnostics.Debug.Assert(OldItems.Count == NewItems.Count);
+                    var list = Collection as IList<T>;
+                    if (list != null && OldStartingIndex == NewStartingIndex)
+                    {
+                        for (var i = 0; i < OldItems.Count; i++)
+                        {
+                            list[OldStartingIndex + i] = (T) OldItems[i];
+                        }
+                    }
+                    else
+                    {
+                        foreach (var item in NewItems)
+                        {
+                            Collection.Remove((T) item);
+                        }
+                        foreach (var item in OldItems)
+                        {
+                            Collection.Add((T) item);
+                        }
+
+                    }
+                    break;
+                }
             }
         }
 

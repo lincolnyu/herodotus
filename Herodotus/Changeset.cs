@@ -17,15 +17,12 @@ namespace Herodotus
         private List<ITrackedChange> _changes;
 
         /// <summary>
-        ///  A flag that prevents tracking when the changset is currently undergoing undo/redo
-        /// </summary>
-        private bool _undoredoing;
-
-        /// <summary>
         ///  A counter that indicates the current level of a nested tracking, mostly undesired and problematic
         ///  none of the trackings above level one are performed
         /// </summary>
         private int _trackingDepth;
+
+        private readonly ChangesetManager _manager;
 
         #endregion
 
@@ -34,10 +31,22 @@ namespace Herodotus
         /// <summary>
         ///  Creates a changeset
         /// </summary>
-        /// <param name="description">An optional description of the changeset</param>
-        public Changeset(string description)
+        /// <param name="manager">The changeset manager that owns and manages this changeset</param>
+        /// <param name="descriptor">An optional Descriptor of the changeset</param>
+        public Changeset(ChangesetManager manager, object descriptor)
         {
-            Description = description;
+            _manager = manager;
+
+            Descriptor = descriptor;
+        }
+
+        /// <summary>
+        ///  Creates a changeset owned by default manager
+        /// </summary>
+        /// <param name="descriptor">An optional Descriptor of the changeset</param>
+        public Changeset(object descriptor)
+            : this(ChangesetManager.Instance, descriptor)
+        {
         }
 
         #endregion
@@ -53,9 +62,9 @@ namespace Herodotus
         }
 
         /// <summary>
-        ///  The description of the changeset
+        ///  An object that describes the changeset
         /// </summary>
-        public string Description { get; private set; }
+        public object Descriptor { get; private set; }
 
         #endregion
 
@@ -72,8 +81,6 @@ namespace Herodotus
 
         public void TrackPropertyChangeBegin(object owner, string propertyName, object targetValue)
         {
-            if (_undoredoing) return;
-            
             if (_trackingDepth++ > 0)
             {
                 return;
@@ -111,8 +118,6 @@ namespace Herodotus
 
         public void OnCollectionChanged<T>(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (_undoredoing) return;
-
             var change = new CollectionChange<T>
             {
                 Collection = (ICollection<T>)sender,
@@ -128,16 +133,14 @@ namespace Herodotus
 
         public void OnCollectionClearing<T>(ObservableCollection<T> collection)
         {
-            if (_undoredoing) return;
-
-            var list = new List<T>();
-            list.AddRange(collection);
+            var oldItems = new List<T>();
+            oldItems.AddRange(collection);
             var change = new CollectionChange<T>
             {
                 Collection = collection,
                 Action = NotifyCollectionChangedAction.Reset,
                 NewItems = null,
-                OldItems = list,
+                OldItems = oldItems,
                 NewStartingIndex = -1,
                 OldStartingIndex = -1
             };
@@ -148,6 +151,10 @@ namespace Herodotus
         protected void AddChange(ITrackedChange change)
         {
             Changes.Add(change);
+            if (_manager.MergeOnTheGo)
+            {
+                Merge();
+            }
         }
 
         /// <summary>
@@ -155,13 +162,11 @@ namespace Herodotus
         /// </summary>
         public void Undo()
         {
-            _undoredoing = true;
             for (var i = Changes.Count - 1; i >= 0; i--)
             {
                 var change = Changes[i];
                 change.Undo();
             }
-            _undoredoing = false;
         }
 
         /// <summary>
@@ -169,12 +174,10 @@ namespace Herodotus
         /// </summary>
         public void Redo()
         {
-            _undoredoing = true;
             foreach (var change in Changes)
             {
                 change.Redo();
             }
-            _undoredoing = false;
         }
 
         /// <summary>

@@ -9,7 +9,7 @@ namespace TestApp
 
         public string Description
         {
-            get { return Model.Description; }
+            get { return Model.Descriptor as string; }
         }
 
         public string NumberOfChanges

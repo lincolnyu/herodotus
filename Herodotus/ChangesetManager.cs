@@ -22,6 +22,16 @@ namespace Herodotus
         private int _currentChangesetIndex;
         private bool _suppressIndexChangedEvent;
 
+        /// <summary>
+        ///  A flag that indicates if a changeset is currently undergoing undo/redo
+        /// </summary>
+        private bool _isUndoRedoing;
+
+        /// <summary>
+        ///  A flag that indicates if a changeset is being currently recording a property chnage
+        /// </summary>
+        private bool _isTracking;
+
         #endregion
 
         #region Properties
@@ -49,6 +59,22 @@ namespace Herodotus
 
         public bool IsTrackingEnabled { get; set; }
 
+        public bool SuspendTracking
+        {
+            get
+            {
+                return (_isUndoRedoing || _isTracking);
+            }
+        }
+
+        /// <summary>
+        ///  Whether to perform merge right after a change is tracked and added to the current changeset
+        /// </summary>
+        public bool MergeOnTheGo
+        {
+            get; set;
+        }
+
         #endregion
 
         #region Events
@@ -66,34 +92,43 @@ namespace Herodotus
         public void TrackPropertyChangeBegin(object owner, string propertyName, object targetValue)
         {
             if (_committingChangeset == null) return;
+            if (SuspendTracking) return;
             _committingChangeset.TrackPropertyChangeBegin(owner, propertyName, targetValue);
+            _isTracking = true;
         }
 
         public void TrackPropertyChangeEnd()
         {
             if (_committingChangeset == null) return;
+            _isTracking = false;
             _committingChangeset.TrackPropertyChangeEnd();
         }
 
         public void OnCollectionChanged<T>(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (_committingChangeset == null) return;
+            if (SuspendTracking) return;
             _committingChangeset.OnCollectionChanged<T>(sender, e);
         }
 
         public void OnCollectionClearing<T>(ObservableCollection<T> collection)
         {
             if (_committingChangeset == null) return;
+            if (SuspendTracking) return;
             _committingChangeset.OnCollectionClearing(collection);
         }
 
         #endregion
 
-        public Changeset StartChangeset(string description, bool autoMerge=false)
+        public Changeset StartChangeset(object descriptor=null)
         {
-            if (!IsTrackingEnabled) return null;
-            _committingChangeset = new Changeset(description);
-            return _committingChangeset;
+            lock (this)
+            {
+                if (!IsTrackingEnabled) return null;
+                if (_committingChangeset != null) return null;   // can't track multple changesets simultaneously 
+                _committingChangeset = new Changeset(this, descriptor);
+                return _committingChangeset;
+            }
         }
 
         public void Commit(bool merge=false, bool dontCommitEmpty = false)
@@ -139,17 +174,33 @@ namespace Herodotus
             _committingChangeset = null;
         }
 
+        /// <summary>
+        ///  Redoes the current changest
+        /// </summary>
+        /// <remarks>
+        ///  This should be the only place the changeset's Redo() method is called
+        /// </remarks>
         public void Redo()
         {
             if (CurrentChangeSetIndex >= Changesets.Count) return;
+            _isUndoRedoing = true;
             Changesets[CurrentChangeSetIndex].Redo();
+            _isUndoRedoing = false;
             CurrentChangeSetIndex++;
         }
 
+        /// <summary>
+        ///  Undoes the previous changeset
+        /// </summary>
+        /// <remarks>
+        ///  This should be the only place the changeset's Undo() method is called
+        /// </remarks>
         public void Undo()
         {
             if (CurrentChangeSetIndex == 0) return;
+            _isUndoRedoing = true;
             Changesets[CurrentChangeSetIndex - 1].Undo();
+            _isUndoRedoing = false;
             CurrentChangeSetIndex--;
         }
 
