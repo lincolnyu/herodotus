@@ -33,9 +33,6 @@ namespace Herodotus
         {
             switch (Action)
             {
-                case NotifyCollectionChangedAction.Reset:
-                    Collection.Clear();
-                    break;
                 case NotifyCollectionChangedAction.Add:
                 {
                     var list = Collection as IList<T>;
@@ -60,7 +57,7 @@ namespace Herodotus
                 {
                     foreach (var item in OldItems)
                     {
-                        Collection.Remove((T)item);
+                        Collection.Remove((T) item);
                     }
                     break;
                 }
@@ -72,7 +69,7 @@ namespace Herodotus
                     {
                         for (var i = 0; i < OldItems.Count; i++)
                         {
-                            list[NewStartingIndex + i] = (T)NewItems[i];
+                            list[NewStartingIndex + i] = (T) NewItems[i];
                         }
                     }
                     else
@@ -88,6 +85,21 @@ namespace Herodotus
                     }
                     break;
                 }
+                case NotifyCollectionChangedAction.Move:
+                {
+                    System.Diagnostics.Debug.Assert(OldItems.Count == NewItems.Count);
+                    var list = Collection as IList<T>;
+                    // Only works on list
+                    if (list != null)
+                    {
+                        MoveList(list, OldStartingIndex, NewStartingIndex, OldItems.Count);
+                    }
+                    break;
+                }
+                case NotifyCollectionChangedAction.Reset:
+                    // So actually this is non-undoable
+                    Collection.Clear();
+                    break;
             }
         }
 
@@ -105,8 +117,6 @@ namespace Herodotus
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                case NotifyCollectionChangedAction.Reset:
-                    // TODO review and test this
                     if (Collection is IList<T>)
                     {
                         var list = (IList<T>) Collection;
@@ -159,10 +169,46 @@ namespace Herodotus
                     }
                     break;
                 }
+                case NotifyCollectionChangedAction.Move:
+                {
+                    System.Diagnostics.Debug.Assert(OldItems.Count == NewItems.Count);
+                    var list = Collection as IList<T>;
+                    // Only works on list
+                    if (list != null)
+                    {
+                        MoveList(list, NewStartingIndex, OldStartingIndex, NewItems.Count);
+                    }
+                    break;
+                }
             }
         }
 
         #endregion
+
+        private static void MoveList(IList<T> list, int sourceStartingIndex, int targetStartingIndex, int count)
+        {
+            int i, j;
+            if (sourceStartingIndex < targetStartingIndex)
+            {
+                for (i = sourceStartingIndex + count - 1, j = targetStartingIndex + count - 1;
+                    i >= targetStartingIndex + count;
+                    i--, j--)
+                {
+                    var temp = list[i];
+                    list[i] = list[j];
+                    list[j] = temp;
+                }
+            }
+            else
+            {
+                for (i = sourceStartingIndex, j = targetStartingIndex; i < sourceStartingIndex + count; i++, j++)
+                {
+                    var temp = list[i];
+                    list[i] = list[j];
+                    list[j] = temp;
+                }
+            }
+        }
 
         #endregion
     }

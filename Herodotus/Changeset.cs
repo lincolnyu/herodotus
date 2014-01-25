@@ -131,6 +131,12 @@ namespace Herodotus
             AddChange(change);
         }
 
+        /// <summary>
+        ///  This allows clearing operation to be routed to Remove if the collection can intervene
+        ///  the operation
+        /// </summary>
+        /// <typeparam name="T">The type of the items in the collection</typeparam>
+        /// <param name="collection">The collection to work on</param>
         public void OnCollectionClearing<T>(ObservableCollection<T> collection)
         {
             var oldItems = new List<T>();
@@ -138,11 +144,11 @@ namespace Herodotus
             var change = new CollectionChange<T>
             {
                 Collection = collection,
-                Action = NotifyCollectionChangedAction.Reset,
+                Action = NotifyCollectionChangedAction.Remove,
                 NewItems = null,
                 OldItems = oldItems,
                 NewStartingIndex = -1,
-                OldStartingIndex = -1
+                OldStartingIndex = 0
             };
 
             AddChange(change);
