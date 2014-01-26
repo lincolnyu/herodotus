@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Reflection;
 
 namespace Herodotus
 {
@@ -28,9 +29,14 @@ namespace Herodotus
         private bool _isUndoRedoing;
 
         /// <summary>
-        ///  A flag that indicates if a changeset is being currently recording a property chnage
+        ///  A counter that indicates the current level of nested tracking
         /// </summary>
-        private bool _isTracking;
+        private int _trackingDepth;
+
+        private object _trackedObject;
+        private PropertyInfo _trackedProperty;
+        private object _trackedOldValue;
+        private object _trackedNewValue;
 
         #endregion
 
@@ -63,7 +69,7 @@ namespace Herodotus
         {
             get
             {
-                return (_isUndoRedoing || _isTracking);
+                return (_isUndoRedoing || _trackingDepth>0);
             }
         }
 
@@ -91,17 +97,60 @@ namespace Herodotus
 
         public void TrackPropertyChangeBegin(object owner, string propertyName, object targetValue)
         {
-            if (_committingChangeset == null) return;
-            if (SuspendTracking) return;
-            _committingChangeset.TrackPropertyChangeBegin(owner, propertyName, targetValue);
-            _isTracking = true;
+            lock (this)
+            {
+                if (SuspendTracking || _committingChangeset == null)
+                {
+                    _trackingDepth++;
+                    return;
+                }
+
+                var type = owner.GetType();
+
+                _trackedObject = owner;
+                _trackedProperty = type.GetRuntimeProperty(propertyName);
+
+                _trackedOldValue = _trackedProperty.GetValue(owner, null);
+                _trackedNewValue = targetValue;
+
+                _trackingDepth++;
+            }
         }
 
         public void TrackPropertyChangeEnd()
         {
-            if (_committingChangeset == null) return;
-            _isTracking = false;
-            _committingChangeset.TrackPropertyChangeEnd();
+            lock (this)
+            {
+                if (_trackingDepth == 1 && _committingChangeset != null && _trackedObject != null && _trackedProperty != null)
+                {
+                    _committingChangeset.AddPropertyChange(_trackedObject, _trackedProperty, _trackedOldValue, _trackedNewValue);
+                    ClearTrackedProperty();
+                }
+
+                if (_trackingDepth > 0)
+                {
+                    _trackingDepth--;
+                }
+            }
+        }
+
+        public void TrackPropertyChangeCancel()
+        {
+            lock (this)
+            {
+                if (_trackingDepth == 1)
+                {
+                    ClearTrackedProperty();
+                }
+            }
+        }
+
+        private void ClearTrackedProperty()
+        {
+            _trackedObject = null;
+            _trackedProperty = null;
+            _trackedOldValue = null;
+            _trackedNewValue = null;
         }
 
         public void OnCollectionChanged<T>(object sender, NotifyCollectionChangedEventArgs e)
@@ -131,10 +180,10 @@ namespace Herodotus
             }
         }
 
-        public void Commit(bool merge=false, bool dontCommitEmpty = false)
+        public void Commit(bool merge=false, bool commitEmpty = false)
         {
             if (_committingChangeset == null) return;
-            if (dontCommitEmpty && _committingChangeset.Changes.Count == 0)
+            if (!commitEmpty && _committingChangeset.Changes.Count == 0)
             {
                 _committingChangeset = null;
                 return;
@@ -155,22 +204,25 @@ namespace Herodotus
                 _committingChangeset.Merge();
             }
             Changesets.Add(_committingChangeset);
-            CurrentChangeSetIndex = Changesets.Count;
             _committingChangeset = null;
+            CurrentChangeSetIndex = Changesets.Count;
         }
 
         /// <summary>
         ///  Rolls back the current changeset
         /// </summary>
-        /// <param name="dispose">whether to dispose the changeset afterwards meaning no more recommit attempt</param>
-        public void Rollback(bool dispose = true)
+        /// <param name="merge">Merge the changeset before undoing it</param>
+        public void Rollback(bool merge=false)
         {
             if (_committingChangeset == null) return;
+
+            if (merge)
+            {
+                _committingChangeset.Merge();
+            }
             _committingChangeset.Undo();
 
-            if (!dispose) return;
             // rolled back changeset can't be committed again 
-            _committingChangeset.Dispose();
             _committingChangeset = null;
         }
 

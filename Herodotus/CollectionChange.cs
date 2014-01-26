@@ -36,7 +36,7 @@ namespace Herodotus
                 case NotifyCollectionChangedAction.Add:
                 {
                     var list = Collection as IList<T>;
-                    if (list != null)
+                    if (list != null && NewStartingIndex >= 0)
                     {
                         var index = NewStartingIndex;
                         foreach (var item in NewItems)

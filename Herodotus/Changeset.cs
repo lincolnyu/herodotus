@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace Herodotus
 {
-    public class Changeset : IDisposable
+    public class Changeset 
     {
         #region Fields
 
@@ -15,12 +13,6 @@ namespace Herodotus
         ///  The backing field for the property 'Changes', all changes the changeset contains
         /// </summary>
         private List<ITrackedChange> _changes;
-
-        /// <summary>
-        ///  A counter that indicates the current level of a nested tracking, mostly undesired and problematic
-        ///  none of the trackings above level one are performed
-        /// </summary>
-        private int _trackingDepth;
 
         private readonly ChangesetManager _manager;
 
@@ -70,50 +62,15 @@ namespace Herodotus
 
         #region Methods
 
-        #region IDisposable Members
-
-        public void Dispose()
+        public void AddPropertyChange(object owner, PropertyInfo property, object oldValue, object newValue)
         {
-            // do nothing
-        }
-
-        #endregion
-
-        public void TrackPropertyChangeBegin(object owner, string propertyName, object targetValue)
-        {
-            if (_trackingDepth++ > 0)
-            {
-                return;
-            }
-
-            var type = owner.GetType();
-            var property = type.GetRuntimeProperty(propertyName);
-            if (property == null)
-            {
-                _trackingDepth--;
-                return;
-            }
-
-            var oldValue = property.GetValue(owner, null);
-
-            Debug.WriteLine("Change '{0}' to '{1}'", oldValue != null ? oldValue.ToString() : "null",
-                targetValue != null ? targetValue.ToString() : "null");
-
             AddChange(new PropertyChange
             {
                 Owner = owner,
                 Property = property,
-                NewValue = targetValue,
+                NewValue = newValue,
                 OldValue = oldValue
             });
-        }
-
-        public void TrackPropertyChangeEnd()
-        {
-            if (_trackingDepth > 0)
-            {
-                _trackingDepth--;
-            }
         }
 
         public void OnCollectionChanged<T>(object sender, NotifyCollectionChangedEventArgs e)

@@ -24,6 +24,11 @@ namespace Herodotus
 
         #endregion
 
+        public static void Cancel()
+        {
+            ChangesetManager.Instance.TrackPropertyChangeCancel();
+        }
+
         #endregion
     }
 }
