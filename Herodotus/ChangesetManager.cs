@@ -227,6 +227,14 @@ namespace Herodotus
         }
 
         /// <summary>
+        ///  Cancels the commitment of the current changeset
+        /// </summary>
+        public void Cancel()
+        {
+            _committingChangeset = null;
+        }
+
+        /// <summary>
         ///  Redoes the current changest
         /// </summary>
         /// <remarks>

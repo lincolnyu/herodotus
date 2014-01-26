@@ -192,20 +192,18 @@ namespace TestApp
             if (Distance(_startX, _startY, endX, endY) > minLineLen)
             {
                 var desc = string.Format("Add Line ({0:0.00},{1:0.00})-({2:0.00},{3:0.00})", _startX, _startY, endX, endY);
-                using (ChangesetManager.Instance.StartChangeset(desc))
+                ChangesetManager.Instance.StartChangeset(desc);
+                var link = new ManagedLine
                 {
-                    var link = new ManagedLine
-                    {
-                        X1 = _startX,
-                        Y1 = _startY,
-                        X2 = endX,
-                        Y2 = endY
-                    };
+                    X1 = _startX,
+                    Y1 = _startY,
+                    X2 = endX,
+                    Y2 = endY
+                };
 
-                    _managedShapes.Add(link);
+                _managedShapes.Add(link);
 
-                    ChangesetManager.Instance.Commit();
-                }
+                ChangesetManager.Instance.Commit();
             }
 
             _pressId = 0;
