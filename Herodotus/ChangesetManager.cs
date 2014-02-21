@@ -18,7 +18,6 @@ namespace Herodotus
 
         private static ChangesetManager _changesetManager;
         private ObservableCollection<Changeset> _changesets;
-        private Changeset _committingChangeset;
 
         private int _currentChangesetIndex;
         private bool _suppressIndexChangedEvent;
@@ -69,7 +68,7 @@ namespace Herodotus
         {
             get
             {
-                return (_isUndoRedoing || _trackingDepth>0);
+                return (!IsTrackingEnabled || _isUndoRedoing || _trackingDepth > 0);
             }
         }
 
@@ -79,6 +78,17 @@ namespace Herodotus
         public bool MergeOnTheGo
         {
             get; set;
+        }
+
+        public int NestCount
+        {
+            get; private set;
+        }
+
+        public Changeset CommittingChangeset
+        {
+            get;
+            private set;
         }
 
         #endregion
@@ -99,7 +109,7 @@ namespace Herodotus
         {
             lock (this)
             {
-                if (SuspendTracking || _committingChangeset == null)
+                if (SuspendTracking || CommittingChangeset == null)
                 {
                     _trackingDepth++;
                     return;
@@ -121,9 +131,9 @@ namespace Herodotus
         {
             lock (this)
             {
-                if (_trackingDepth == 1 && _committingChangeset != null && _trackedObject != null && _trackedProperty != null)
+                if (_trackingDepth == 1 && CommittingChangeset != null && _trackedObject != null && _trackedProperty != null)
                 {
-                    _committingChangeset.AddPropertyChange(_trackedObject, _trackedProperty, _trackedOldValue, _trackedNewValue);
+                    CommittingChangeset.AddPropertyChange(_trackedObject, _trackedProperty, _trackedOldValue, _trackedNewValue);
                     ClearTrackedProperty();
                 }
 
@@ -155,38 +165,58 @@ namespace Herodotus
 
         public void OnCollectionChanged<T>(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (_committingChangeset == null) return;
+            if (CommittingChangeset == null) return;
             if (SuspendTracking) return;
-            _committingChangeset.OnCollectionChanged<T>(sender, e);
+            CommittingChangeset.OnCollectionChanged<T>(sender, e);
         }
 
         public void OnCollectionClearing<T>(ObservableCollection<T> collection)
         {
-            if (_committingChangeset == null) return;
+            if (CommittingChangeset == null) return;
             if (SuspendTracking) return;
-            _committingChangeset.OnCollectionClearing(collection);
+            CommittingChangeset.OnCollectionClearing(collection);
         }
 
         #endregion
 
-        public Changeset StartChangeset(object descriptor=null)
+        public int StartChangeset(object descriptor=null)
         {
             lock (this)
             {
-                if (!IsTrackingEnabled) return null;
-                if (_committingChangeset != null) return null;   // can't track multple changesets simultaneously 
-                _committingChangeset = new Changeset(this, descriptor);
-                return _committingChangeset;
+                if (NestCount++ > 0)
+                {
+                    return NestCount;
+                }
+                if (!IsTrackingEnabled)
+                {
+                    return NestCount;
+                }
+                CommittingChangeset = new Changeset(this, descriptor);
+                return NestCount;
             }
         }
 
-        public void Commit(bool merge=false, bool commitEmpty = false)
+        public int Commit(bool merge=false, bool commitEmpty = false)
         {
-            if (_committingChangeset == null) return;
-            if (!commitEmpty && _committingChangeset.Changes.Count == 0)
+            int nestCount;
+            lock (this)
             {
-                _committingChangeset = null;
-                return;
+                nestCount = NestCount;
+                if (NestCount <= 0)
+                {
+                    NestCount = 0;
+                    return nestCount;
+                }
+                if (--NestCount > 0)
+                {
+                    return nestCount;
+                }
+            }
+
+            if (!commitEmpty && CommittingChangeset.Changes.Count == 0)
+            {
+                CommittingChangeset = null;
+                return nestCount;
             }
 
             var d = Changesets.Count - CurrentChangeSetIndex;
@@ -201,11 +231,12 @@ namespace Herodotus
 
             if (merge)
             {
-                _committingChangeset.Merge();
+                CommittingChangeset.Merge();
             }
-            Changesets.Add(_committingChangeset);
-            _committingChangeset = null;
+            Changesets.Add(CommittingChangeset);
             CurrentChangeSetIndex = Changesets.Count;
+            CommittingChangeset = null;
+            return nestCount;
         }
 
         /// <summary>
@@ -214,16 +245,16 @@ namespace Herodotus
         /// <param name="merge">Merge the changeset before undoing it</param>
         public void Rollback(bool merge=false)
         {
-            if (_committingChangeset == null) return;
+            if (CommittingChangeset == null) return;
 
             if (merge)
             {
-                _committingChangeset.Merge();
+                CommittingChangeset.Merge();
             }
-            _committingChangeset.Undo();
+            CommittingChangeset.Undo();
 
             // rolled back changeset can't be committed again 
-            _committingChangeset = null;
+            CommittingChangeset = null;
         }
 
         /// <summary>
@@ -231,7 +262,7 @@ namespace Herodotus
         /// </summary>
         public void Cancel()
         {
-            _committingChangeset = null;
+            CommittingChangeset = null;
         }
 
         /// <summary>
