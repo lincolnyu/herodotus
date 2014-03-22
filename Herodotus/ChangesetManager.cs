@@ -211,6 +211,10 @@ namespace Herodotus
                 {
                     return nestCount;
                 }
+                if (!IsTrackingEnabled)
+                {
+                    return nestCount;
+                }
             }
 
             if (!commitEmpty && CommittingChangeset.Changes.Count == 0)
