@@ -102,16 +102,25 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <ProjectReference Include="..\..\..\Trollveggen\Trollveggen.git\Trollveggen\Trollveggen.csproj">
+      <Project>{787a5640-f3bc-4b2e-b2e4-ab8c1dc1a1e0}</Project>
+      <Name>Trollveggen</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Changeset.cs" />
-    <Compile Include="ChangesetManager.cs" />
+    <Compile Include="LinearChangesetManager.cs" />
     <Compile Include="CollectionChange.cs" />
+    <Compile Include="CompleteManager.cs" />
+    <Compile Include="IChangesetManager.cs" />
+    <Compile Include="ILinearChangesetManager.cs" />
     <Compile Include="ITrackedChange.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyChange.cs" />
     <Compile Include="GlobalPropertyChangeMarker.cs" />
     <Compile Include="PropertyChangeMarker.cs" />
+    <Compile Include="StateNode.cs" />
+    <Compile Include="TrackingManager.cs" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
     <VisualStudioVersion>12.0</VisualStudioVersion>

@@ -1,5 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using Windows.UI;
+using Windows.UI.Xaml.Media;
 using Herodotus;
 
 namespace TestApp.ViewModels
@@ -22,8 +24,8 @@ namespace TestApp.ViewModels
 
         public MainPageViewModel()
         {
-            ChangesetManager.Instance.Changesets.CollectionChanged += ChangesetCollectionChanged;
-            ChangesetManager.Instance.ChangeSetIndexChanged += OnChangeSetIndexChanged;
+            ((LinearChangesetManager)TrackingManager.Instance).Changesets.CollectionChanged += ChangesetCollectionChanged;
+            ((LinearChangesetManager)TrackingManager.Instance).ChangeSetIndexChanged += OnChangeSetIndexChanged;
             ClearChangesetViewModels();
         }
 
@@ -43,13 +45,13 @@ namespace TestApp.ViewModels
 
         public int SelectedChangesetIndex
         {
-            get { return ChangesetManager.Instance.CurrentChangeSetIndex; }
+            get { return ((LinearChangesetManager)TrackingManager.Instance).CurrentChangeSetIndex; }
         }
 
         public static bool IsTrackingEnabled
         {
-            get { return ChangesetManager.Instance.IsTrackingEnabled; }
-            set { ChangesetManager.Instance.IsTrackingEnabled = value; }
+            get { return (TrackingManager.Instance).IsTrackingEnabled; }
+            set { (TrackingManager.Instance).IsTrackingEnabled = value; }
         }
 
         #endregion
@@ -61,36 +63,37 @@ namespace TestApp.ViewModels
         {
             if (target >= 0)
             {
-                for (; ChangesetManager.Instance.CurrentChangeSetIndex < target; )
+                for (; ((LinearChangesetManager)TrackingManager.Instance).CurrentChangeSetIndex < target; )
                 {
-                    ChangesetManager.Instance.Redo();
+                    ((LinearChangesetManager)TrackingManager.Instance).Redo();
                 }
-                for (; ChangesetManager.Instance.CurrentChangeSetIndex > target; )
+                for (; ((LinearChangesetManager)TrackingManager.Instance).CurrentChangeSetIndex > target; )
                 {
-                    ChangesetManager.Instance.Undo();   
+                    ((LinearChangesetManager)TrackingManager.Instance).Undo();   
                 }
             }
         }
 
         public void RemoveFrom(int index)
         {
-            ChangesetManager.Instance.RemoveFrom(index);
+            ((LinearChangesetManager)TrackingManager.Instance).RemoveFrom(index);
         }
 
         public void RemoveTo(int index)
         {
-            ChangesetManager.Instance.RemoveTo(index);
+            ((LinearChangesetManager)TrackingManager.Instance).RemoveTo(index);
         }
 
         public void ResetChangesets()
         {
-            ChangesetManager.Instance.RemoveAll();
+            ((LinearChangesetManager)TrackingManager.Instance).RemoveAll();
         }
 
         private void ClearChangesetViewModels()
         {
             Changesets.Clear();
             Changesets.Add(new ChangesetViewModel(new Changeset("Initial")));
+            UpdateColors();
         }
 
         private void ChangesetCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -118,7 +121,20 @@ namespace TestApp.ViewModels
 
         private void OnChangeSetIndexChanged()
         {
+            UpdateColors();
+            
             OnPropertyChanged("SelectedChangesetIndex");
+        }
+
+        private void UpdateColors()
+        {
+            var sel = SelectedChangesetIndex;
+            for (var i = 0; i < Changesets.Count; i++)
+            {
+                var vm = Changesets[i];
+                var color = (i == sel) ? Colors.Red : Colors.Green;
+                vm.ItemBrush = new SolidColorBrush(color);
+            }
         }
 
         #endregion

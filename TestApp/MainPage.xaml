@@ -26,13 +26,13 @@
                 </Setter>
             </Style>
             <DataTemplate x:Key="ListViewTemplate">
-                <Grid HorizontalAlignment="Stretch" Margin="5,0,0,0"  Background="Red">
+                <Grid HorizontalAlignment="Stretch" Margin="5,0,0,0"  Background="{Binding ItemBrush}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width=".8*"/>
                         <ColumnDefinition Width=".2*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="{Binding Path=Description}"/>
-                    <TextBlock Grid.Column="1" Text="{Binding Path=NumberOfChanges}" TextAlignment="Center"/>
+                    <TextBlock Grid.Column="0" Text="{Binding Description}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding NumberOfChanges}" TextAlignment="Center"/>
                 </Grid>
             </DataTemplate>
         </Grid.Resources>
@@ -43,7 +43,7 @@
                 <Button Name="BtnRedo" Content="Redo"/>
                 <Button Name="BtnUndo" Content="Undo"/>
             </StackPanel>
-            <ListView HorizontalAlignment="Stretch" ItemsSource="{Binding Path=Changesets}" SelectionMode="Single"
+            <ListView HorizontalAlignment="Stretch" ItemsSource="{Binding Changesets}" SelectionMode="Single"
                       ItemTemplate="{StaticResource ListViewTemplate}"
                       ItemContainerStyle="{StaticResource ListViewItemStyle}"
                       />

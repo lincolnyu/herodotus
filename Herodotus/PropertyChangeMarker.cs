@@ -6,13 +6,13 @@ namespace Herodotus
     {
         #region Fields
 
-        private readonly ChangesetManager _changesetManager;
+        private readonly LinearChangesetManager _changesetManager;
 
         #endregion
 
         #region Constructors
 
-        public PropertyChangeMarker(ChangesetManager changesetManager, object owner, string propertyName,
+        public PropertyChangeMarker(LinearChangesetManager changesetManager, object owner, string propertyName,
             object targetValue)
         {
             _changesetManager = changesetManager;

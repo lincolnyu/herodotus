@@ -14,7 +14,7 @@ namespace Herodotus
         /// </summary>
         private List<ITrackedChange> _changes;
 
-        private readonly ChangesetManager _manager;
+        private readonly TrackingManager _manager;
 
         #endregion
 
@@ -25,7 +25,7 @@ namespace Herodotus
         /// </summary>
         /// <param name="manager">The changeset manager that owns and manages this changeset</param>
         /// <param name="descriptor">An optional Descriptor of the changeset</param>
-        public Changeset(ChangesetManager manager, object descriptor)
+        public Changeset(TrackingManager manager, object descriptor)
         {
             _manager = manager;
 
@@ -37,7 +37,7 @@ namespace Herodotus
         /// </summary>
         /// <param name="descriptor">An optional Descriptor of the changeset</param>
         public Changeset(object descriptor)
-            : this(ChangesetManager.Instance, descriptor)
+            : this(TrackingManager.Instance, descriptor)
         {
         }
 

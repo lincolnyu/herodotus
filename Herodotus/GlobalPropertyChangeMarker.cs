@@ -8,7 +8,7 @@ namespace Herodotus
 
         public GlobalPropertyChangeMarker(object owner, string propertyName, object targetValue)
         {
-            ChangesetManager.Instance.TrackPropertyChangeBegin(owner, propertyName, targetValue);
+            TrackingManager.Instance.TrackPropertyChangeBegin(owner, propertyName, targetValue);
         }
 
         #endregion
@@ -19,14 +19,14 @@ namespace Herodotus
 
         public void Dispose()
         {
-            ChangesetManager.Instance.TrackPropertyChangeEnd();
+            TrackingManager.Instance.TrackPropertyChangeEnd();
         }
 
         #endregion
 
         public static void Cancel()
         {
-            ChangesetManager.Instance.TrackPropertyChangeCancel();
+            (TrackingManager.Instance).TrackPropertyChangeCancel();
         }
 
         #endregion

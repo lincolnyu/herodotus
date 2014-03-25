@@ -11,6 +11,7 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Shapes;
 using Herodotus;
 using TestApp.ViewModels;
+using Trollveggen;
 
 namespace TestApp
 {
@@ -30,9 +31,7 @@ namespace TestApp
         ManagedLine _draggedLine;
         bool _startPoint;
 
-        
         private Line _tempLine;
-
 
         #endregion
 
@@ -41,6 +40,8 @@ namespace TestApp
         public MainPage()
         {
             InitializeComponent();
+
+            Factory.Register<IChangesetManager>(new LinearChangesetManager());
 
             MainCanvas.DoubleTapped += MainCanvasOnDoubleTapped;
             MainCanvas.PointerPressed += MainCanvasOnPointerPressed;
@@ -69,10 +70,10 @@ namespace TestApp
                         MainCanvas.Children.Add(mshape.InnerShape);
                     }
                 }
-                ChangesetManager.Instance.OnCollectionChanged<IManagedShape>(sender, args);
+                TrackingManager.Instance.OnCollectionChanged<IManagedShape>(sender, args);
             };
 
-            ChangesetManager.Instance.IsTrackingEnabled = true;
+            TrackingManager.Instance.IsTrackingEnabled = true;
             DataContext = MainPageViewModel.Instance;
         }
 
@@ -107,7 +108,7 @@ namespace TestApp
 
             if (HitTest(pos, out _draggedLine, out _startPoint))
             {
-                ChangesetManager.Instance.StartChangeset("Move");
+                TrackingManager.Instance.StartChangeset("Move");
             }
             else
             {
@@ -173,7 +174,7 @@ namespace TestApp
             {
                 _draggedLine = null;
                 _pressId = 0;
-                ChangesetManager.Instance.Commit(true);
+                TrackingManager.Instance.Commit(true);
                 return;
             }
 
@@ -192,7 +193,7 @@ namespace TestApp
             if (Distance(_startX, _startY, endX, endY) > minLineLen)
             {
                 var desc = string.Format("Add Line ({0:0.00},{1:0.00})-({2:0.00},{3:0.00})", _startX, _startY, endX, endY);
-                ChangesetManager.Instance.StartChangeset(desc);
+                TrackingManager.Instance.StartChangeset(desc);
                 var link = new ManagedLine
                 {
                     X1 = _startX,
@@ -203,7 +204,7 @@ namespace TestApp
 
                 _managedShapes.Add(link);
 
-                ChangesetManager.Instance.Commit();
+                TrackingManager.Instance.Commit();
             }
 
             _pressId = 0;
@@ -211,12 +212,12 @@ namespace TestApp
 
         private void BtnUndoOnClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            ChangesetManager.Instance.Undo();
+            ((IChangesetManager)TrackingManager.Instance).Undo();
         }
 
         private void BtnRedoOnClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            ChangesetManager.Instance.Redo();
+            ((IChangesetManager)TrackingManager.Instance).Redo();
         }
 
         #endregion

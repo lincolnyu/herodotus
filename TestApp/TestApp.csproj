@@ -103,6 +103,10 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <ProjectReference Include="..\..\..\Trollveggen\Trollveggen.git\Trollveggen\Trollveggen.csproj">
+      <Project>{787A5640-F3BC-4B2E-B2E4-AB8C1DC1A1E0}</Project>
+      <Name>Trollveggen</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Herodotus\Herodotus.csproj">
       <Project>{bfc3ac04-2787-4e13-8a93-fd37d6483b76}</Project>
       <Name>Herodotus</Name>
