@@ -41,7 +41,8 @@ namespace TestApp
         {
             InitializeComponent();
 
-            Factory.Register<IChangesetManager>(new LinearChangesetManager());
+            //Factory.Register<IChangesetManager>(new LinearChangesetManager());
+            Factory.Register<IChangesetManager>(new CompleteManagerLinearExtension());
 
             MainCanvas.DoubleTapped += MainCanvasOnDoubleTapped;
             MainCanvas.PointerPressed += MainCanvasOnPointerPressed;

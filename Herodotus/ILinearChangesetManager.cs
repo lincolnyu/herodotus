@@ -1,22 +1,23 @@
-﻿namespace Herodotus
-{
-    public delegate void ChangeSetIndexChangedEvent();
+﻿using System.Collections.ObjectModel;
 
-    public delegate void ChangeSetRemovedRangeEvent(int index, int count);
+namespace Herodotus
+{
+    public delegate void ChangesetIndexChangedEvent();
+
 
     public interface ILinearChangesetManager : IChangesetManager
     {
         #region Properties
 
-        int CurrentChangeSetIndex { get; }
+        int CurrentChangesetIndex { get; }
+
+        ObservableCollection<Changeset> Changesets { get; }
 
         #endregion
 
         #region Events
 
-        event ChangeSetIndexChangedEvent ChangeSetIndexChanged;
-
-        event ChangeSetRemovedRangeEvent ChangeSetRemovedRange;
+        event ChangesetIndexChangedEvent ChangesetIndexChanged;
 
         #endregion
     }

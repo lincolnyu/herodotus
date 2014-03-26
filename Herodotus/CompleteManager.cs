@@ -21,6 +21,16 @@
 
         #region IChangesetManager members
 
+        public bool CanRedo()
+        {
+            return (CurrentStateNode.Branches.Count > 0);
+        }
+
+        public bool CanUndo()
+        {
+            return (CurrentStateNode.Parent != null);
+        }
+
         /// <summary>
         ///  Redoes the change set to the most recent child
         /// </summary>
@@ -34,7 +44,7 @@
         /// </summary>
         public void Undo()
         {
-            if (CurrentStateNode.Parent != null)
+            if (CanUndo())
             {
                 CurrentStateNode.ChangeFromParent.Undo();
                 CurrentStateNode = CurrentStateNode.Parent;
@@ -57,7 +67,10 @@
                 Change = CommittingChangeset,
                 Target = newNode
             };
-            CurrentStateNode.Branches.Add(branch);
+            if (CurrentStateNode != null)
+            {
+                CurrentStateNode.Branches.Add(branch);
+            }
             CurrentStateNode = newNode;
         }
 
@@ -65,7 +78,7 @@
 
         public void Redo(int branchIndex)
         {
-            if (CurrentStateNode.Branches.Count > 0)
+            if (CanRedo())
             {
                 var branch = CurrentStateNode.Branches[branchIndex];
                 branch.Change.Redo();
@@ -98,7 +111,7 @@
         }
 
         /// <summary>
-        ///  Clear branches of the current and branches of all its parents
+        ///  Clear branches of the current and branches of all its ancestors
         /// </summary>
         public void ClearAllBranches()
         {

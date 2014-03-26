@@ -24,8 +24,8 @@ namespace TestApp.ViewModels
 
         public MainPageViewModel()
         {
-            ((LinearChangesetManager)TrackingManager.Instance).Changesets.CollectionChanged += ChangesetCollectionChanged;
-            ((LinearChangesetManager)TrackingManager.Instance).ChangeSetIndexChanged += OnChangeSetIndexChanged;
+            ((ILinearChangesetManager)TrackingManager.Instance).Changesets.CollectionChanged += ChangesetCollectionChanged;
+            ((ILinearChangesetManager)TrackingManager.Instance).ChangesetIndexChanged += OnChangesetIndexChanged;
             ClearChangesetViewModels();
         }
 
@@ -45,7 +45,7 @@ namespace TestApp.ViewModels
 
         public int SelectedChangesetIndex
         {
-            get { return ((LinearChangesetManager)TrackingManager.Instance).CurrentChangeSetIndex; }
+            get { return ((ILinearChangesetManager)TrackingManager.Instance).CurrentChangesetIndex; }
         }
 
         public static bool IsTrackingEnabled
@@ -56,38 +56,39 @@ namespace TestApp.ViewModels
 
         #endregion
 
-
         #region Methods
 
         public void RestoreTo(int target)
         {
             if (target >= 0)
             {
-                for (; ((LinearChangesetManager)TrackingManager.Instance).CurrentChangeSetIndex < target; )
+                for (; ((ILinearChangesetManager)TrackingManager.Instance).CurrentChangesetIndex < target; )
                 {
-                    ((LinearChangesetManager)TrackingManager.Instance).Redo();
+                    ((ILinearChangesetManager)TrackingManager.Instance).Redo();
                 }
-                for (; ((LinearChangesetManager)TrackingManager.Instance).CurrentChangeSetIndex > target; )
+                for (; ((ILinearChangesetManager)TrackingManager.Instance).CurrentChangesetIndex > target; )
                 {
-                    ((LinearChangesetManager)TrackingManager.Instance).Undo();   
+                    ((ILinearChangesetManager)TrackingManager.Instance).Undo();   
                 }
             }
         }
 
+#if false
         public void RemoveFrom(int index)
         {
-            ((LinearChangesetManager)TrackingManager.Instance).RemoveFrom(index);
+            ((ILinearChangesetManager)TrackingManager.Instance).RemoveFrom(index);
         }
 
         public void RemoveTo(int index)
         {
-            ((LinearChangesetManager)TrackingManager.Instance).RemoveTo(index);
+            ((ILinearChangesetManager)TrackingManager.Instance).RemoveTo(index);
         }
 
         public void ResetChangesets()
         {
-            ((LinearChangesetManager)TrackingManager.Instance).RemoveAll();
+            ((ILinearChangesetManager)TrackingManager.Instance).RemoveAll();
         }
+#endif
 
         private void ClearChangesetViewModels()
         {
@@ -119,7 +120,7 @@ namespace TestApp.ViewModels
             }
         }
 
-        private void OnChangeSetIndexChanged()
+        private void OnChangesetIndexChanged()
         {
             UpdateColors();
             

@@ -4,6 +4,12 @@ namespace Herodotus
 {
     public class LinearChangesetManager : TrackingManager, ILinearChangesetManager
     {
+        #region Delegates
+
+        public delegate void ChangeSetRemovedRangeEvent(int index, int count);
+
+        #endregion
+
         #region Fields
 
         private ObservableCollection<Changeset> _changesets;
@@ -21,7 +27,7 @@ namespace Herodotus
             get { return _changesets ?? (_changesets = new ObservableCollection<Changeset>()); }
         }
 
-        public int CurrentChangeSetIndex
+        public int CurrentChangesetIndex
         {
             get { return _currentChangesetIndex; }
             set
@@ -38,7 +44,7 @@ namespace Herodotus
 
         #region ILinearChangeset manager members
 
-        public event ChangeSetIndexChangedEvent ChangeSetIndexChanged;
+        public event ChangesetIndexChangedEvent ChangesetIndexChanged;
 
         public event ChangeSetRemovedRangeEvent ChangeSetRemovedRange;
 
@@ -50,18 +56,18 @@ namespace Herodotus
 
         protected override void OnCommit()
         {
-            var d = Changesets.Count - CurrentChangeSetIndex;
+            var d = Changesets.Count - CurrentChangesetIndex;
             if (d > 0)
             {
                 do
                 {
                     Changesets.RemoveAt(Changesets.Count - 1);
-                } while (CurrentChangeSetIndex < Changesets.Count);
-                OnRemoveRange(CurrentChangeSetIndex, d);
+                } while (CurrentChangesetIndex < Changesets.Count);
+                OnRemoveRange(CurrentChangesetIndex, d);
             }
 
             Changesets.Add(CommittingChangeset);
-            CurrentChangeSetIndex = Changesets.Count;
+            CurrentChangesetIndex = Changesets.Count;
         }
 
         /// <summary>
@@ -72,11 +78,11 @@ namespace Herodotus
         /// </remarks>
         public virtual void Redo()
         {
-            if (CurrentChangeSetIndex >= Changesets.Count) return;
+            if (CurrentChangesetIndex >= Changesets.Count) return;
             IsUndoRedoing = true;
-            Changesets[CurrentChangeSetIndex].Redo();
+            Changesets[CurrentChangesetIndex].Redo();
             IsUndoRedoing = false;
-            CurrentChangeSetIndex++;
+            CurrentChangesetIndex++;
         }
 
         /// <summary>
@@ -87,11 +93,11 @@ namespace Herodotus
         /// </remarks>
         public virtual void Undo()
         {
-            if (CurrentChangeSetIndex == 0) return;
+            if (CurrentChangesetIndex == 0) return;
             IsUndoRedoing = true;
-            Changesets[CurrentChangeSetIndex - 1].Undo();
+            Changesets[CurrentChangesetIndex - 1].Undo();
             IsUndoRedoing = false;
-            CurrentChangeSetIndex--;
+            CurrentChangesetIndex--;
         }
 
         /// <summary>
@@ -101,7 +107,7 @@ namespace Herodotus
         public void RemoveTo(int index)
         {
             _suppressIndexChangedEvent = true;
-            while (CurrentChangeSetIndex < index)
+            while (CurrentChangesetIndex < index)
             {
                 Redo();
             }
@@ -109,7 +115,7 @@ namespace Herodotus
             {
                 Changesets.RemoveAt(0);
             }
-            CurrentChangeSetIndex -= index;
+            CurrentChangesetIndex -= index;
             _suppressIndexChangedEvent = false;
 
             OnRemoveRange(0, index);
@@ -125,8 +131,8 @@ namespace Herodotus
         {
             _suppressIndexChangedEvent = true;
             var count = Changesets.Count - index + 1;
-            var origIndex = CurrentChangeSetIndex;
-            while (CurrentChangeSetIndex > index)
+            var origIndex = CurrentChangesetIndex;
+            while (CurrentChangesetIndex > index)
             {
                 Undo();
             }
@@ -137,7 +143,7 @@ namespace Herodotus
             _suppressIndexChangedEvent = false;
 
             OnRemoveRange(index, count);
-            if (origIndex != CurrentChangeSetIndex)
+            if (origIndex != CurrentChangesetIndex)
             {
                 OnChangeSetIndexChanged();
             }
@@ -164,9 +170,9 @@ namespace Herodotus
         private void OnChangeSetIndexChanged()
         {
             if (_suppressIndexChangedEvent) return;
-            if (ChangeSetIndexChanged != null)
+            if (ChangesetIndexChanged != null)
             {
-                ChangeSetIndexChanged();
+                ChangesetIndexChanged();
             }
         }
 

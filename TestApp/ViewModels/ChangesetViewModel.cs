@@ -1,7 +1,7 @@
 ﻿using Windows.UI.Xaml.Media;
 using Herodotus;
 
-namespace TestApp
+namespace TestApp.ViewModels
 {
     public class ChangesetViewModel : ViewModelBase<Changeset>
     {

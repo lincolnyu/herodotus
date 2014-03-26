@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace TestApp
+namespace TestApp.ViewModels
 {
     public abstract class ViewModelBase<TModel> : INotifyPropertyChanged, IDisposable where TModel : class
     {
