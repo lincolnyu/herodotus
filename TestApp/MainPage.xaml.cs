@@ -213,12 +213,18 @@ namespace TestApp
 
         private void BtnUndoOnClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            ((IChangesetManager)TrackingManager.Instance).Undo();
+            if (((IChangesetManager) TrackingManager.Instance).CanUndo())
+            {
+                ((IChangesetManager)TrackingManager.Instance).Undo();    
+            }
         }
 
         private void BtnRedoOnClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            ((IChangesetManager)TrackingManager.Instance).Redo();
+            if (((IChangesetManager) TrackingManager.Instance).CanRedo())
+            {
+                ((IChangesetManager)TrackingManager.Instance).Redo();    
+            }
         }
 
         #endregion

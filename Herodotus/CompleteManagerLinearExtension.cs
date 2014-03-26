@@ -47,20 +47,14 @@ namespace Herodotus
 
         public new void Redo()
         {
-            if (CanRedo())
-            {
-                base.Redo();
-                CurrentChangesetIndex++;
-            }
+            base.Redo();
+            CurrentChangesetIndex++;
         }
 
         public new void Undo()
         {
-            if (CanUndo())
-            {
-                base.Undo();
-                CurrentChangesetIndex--;
-            }
+            base.Undo();
+            CurrentChangesetIndex--;
         }
 
         protected override void OnCommit()

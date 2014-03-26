@@ -70,15 +70,24 @@ namespace Herodotus
             CurrentChangesetIndex = Changesets.Count;
         }
 
+        public bool CanRedo()
+        {
+            return (CurrentChangesetIndex < Changesets.Count);
+        }
+
+        public bool CanUndo()
+        {
+            return (CurrentChangesetIndex > 0);
+        }
+
         /// <summary>
         ///  Redoes the current changest
         /// </summary>
         /// <remarks>
         ///  This should be the only place the changeset's Redo() method is called
         /// </remarks>
-        public virtual void Redo()
+        public void Redo()
         {
-            if (CurrentChangesetIndex >= Changesets.Count) return;
             IsUndoRedoing = true;
             Changesets[CurrentChangesetIndex].Redo();
             IsUndoRedoing = false;
@@ -91,9 +100,8 @@ namespace Herodotus
         /// <remarks>
         ///  This should be the only place the changeset's Undo() method is called
         /// </remarks>
-        public virtual void Undo()
+        public void Undo()
         {
-            if (CurrentChangesetIndex == 0) return;
             IsUndoRedoing = true;
             Changesets[CurrentChangesetIndex - 1].Undo();
             IsUndoRedoing = false;

@@ -40,13 +40,12 @@
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin ="0,0,0,0"/>
         <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch">
             <StackPanel Orientation="Horizontal">
-                <Button Name="BtnRedo" Content="Redo"/>
-                <Button Name="BtnUndo" Content="Undo"/>
+                <Button Name="BtnUndo" Content="Undo" IsEnabled="{Binding CanUndo}"/>
+                <Button Name="BtnRedo" Content="Redo" IsEnabled="{Binding CanRedo}"/>
             </StackPanel>
             <ListView HorizontalAlignment="Stretch" ItemsSource="{Binding Changesets}" SelectionMode="Single"
                       ItemTemplate="{StaticResource ListViewTemplate}"
-                      ItemContainerStyle="{StaticResource ListViewItemStyle}"
-                      />
+                      ItemContainerStyle="{StaticResource ListViewItemStyle}"/>
         </StackPanel>
     </Grid>
 </Page>

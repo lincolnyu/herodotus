@@ -5,12 +5,33 @@
     /// </summary>
     public class CompleteManager : TrackingManager, IChangesetManager
     {
+        #region Constructors
+
+        /// <summary>
+        ///  Instantiates and initialises a CompleteManager object
+        /// </summary>
+        public CompleteManager()
+        {
+            RootNode = new StateNode();
+            CurrentStateNode = RootNode;
+        }
+
+        #endregion
+
         #region Properties
 
         /// <summary>
         ///  The current state node
         /// </summary>
         public StateNode CurrentStateNode
+        {
+            get; private set;
+        }
+
+        /// <summary>
+        ///  The root node that represents the inital state
+        /// </summary>
+        public StateNode RootNode
         {
             get; private set;
         }
@@ -44,11 +65,8 @@
         /// </summary>
         public void Undo()
         {
-            if (CanUndo())
-            {
-                CurrentStateNode.ChangeFromParent.Undo();
-                CurrentStateNode = CurrentStateNode.Parent;
-            }
+            CurrentStateNode.ChangeFromParent.Undo();
+            CurrentStateNode = CurrentStateNode.Parent;
         }
 
         #endregion
@@ -78,12 +96,9 @@
 
         public void Redo(int branchIndex)
         {
-            if (CanRedo())
-            {
-                var branch = CurrentStateNode.Branches[branchIndex];
-                branch.Change.Redo();
-                CurrentStateNode = branch.Target;
-            }
+            var branch = CurrentStateNode.Branches[branchIndex];
+            branch.Change.Redo();
+            CurrentStateNode = branch.Target;
         }
 
         /// <summary>
@@ -130,6 +145,7 @@
         public void ClearToNode(StateNode node)
         {
             node.Parent = null;
+            RootNode = node;
         }
 
         /// <summary>

@@ -4,7 +4,6 @@ namespace Herodotus
 {
     public delegate void ChangesetIndexChangedEvent();
 
-
     public interface ILinearChangesetManager : IChangesetManager
     {
         #region Properties

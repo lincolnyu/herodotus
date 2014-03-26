@@ -50,9 +50,26 @@ namespace TestApp.ViewModels
 
         public static bool IsTrackingEnabled
         {
-            get { return (TrackingManager.Instance).IsTrackingEnabled; }
-            set { (TrackingManager.Instance).IsTrackingEnabled = value; }
+            get { return TrackingManager.Instance.IsTrackingEnabled; }
+            set { TrackingManager.Instance.IsTrackingEnabled = value; }
         }
+
+        public bool CanUndo
+        {
+            get
+            {
+                return ((IChangesetManager) TrackingManager.Instance).CanUndo();
+            }
+        }
+
+        public bool CanRedo
+        {
+            get
+            {
+                return ((IChangesetManager)TrackingManager.Instance).CanRedo();
+            }
+        }
+        
 
         #endregion
 
@@ -125,6 +142,8 @@ namespace TestApp.ViewModels
             UpdateColors();
             
             OnPropertyChanged("SelectedChangesetIndex");
+            OnPropertyChanged("CanUndo");
+            OnPropertyChanged("CanRedo");
         }
 
         private void UpdateColors()
