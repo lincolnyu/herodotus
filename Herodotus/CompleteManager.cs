@@ -3,7 +3,7 @@
     /// <summary>
     ///  A manager that can potentially keeps all the changes user has made
     /// </summary>
-    public class CompleteManager : TrackingManager, IChangesetManager
+    public class CompleteManager : TrackingManager, ICompleteChangesetManager
     {
         #region Constructors
 
@@ -40,6 +40,8 @@
 
         #region Methods
 
+        #region ICompleteChangesetManager members
+
         #region IChangesetManager members
 
         public bool CanRedo()
@@ -49,7 +51,7 @@
 
         public bool CanUndo()
         {
-            return (CurrentStateNode.Parent != null);
+            return (CurrentStateNode.Parent.Target != null);
         }
 
         /// <summary>
@@ -65,8 +67,39 @@
         /// </summary>
         public void Undo()
         {
-            CurrentStateNode.ChangeFromParent.Undo();
-            CurrentStateNode = CurrentStateNode.Parent;
+            CurrentStateNode.Parent.Change.Undo();
+            CurrentStateNode = CurrentStateNode.Parent.Target;
+        }
+
+        #endregion
+
+        /// <summary>
+        ///  Redoes a specified branch
+        /// </summary>
+        /// <param name="branchIndex">The branch to redo</param>
+        public void Redo(int branchIndex)
+        {
+            var branch = CurrentStateNode.Branches[branchIndex];
+            branch.Change.Redo();
+            CurrentStateNode = branch.Target;
+        }
+
+        /// <summary>
+        ///  Makes a virtual undo (doesn't make changes but change the state/changeset pointer)
+        /// </summary>
+        public void UndoVirtual()
+        {
+            CurrentStateNode = CurrentStateNode.Parent.Target;
+        }
+
+        /// <summary>
+        ///  Makes a virtual redo (doesn't make changes but change the state/changeset pointer)
+        /// </summary>
+        /// <param name="branchIndex">The branch to redo</param>
+        public void RedoVirtual(int branchIndex)
+        {
+            var branch = CurrentStateNode.Branches[branchIndex];
+            CurrentStateNode = branch.Target;
         }
 
         #endregion
@@ -77,10 +110,13 @@
         {
             var newNode = new StateNode
             {
-                Parent = CurrentStateNode,
-                ChangeFromParent = CommittingChangeset
+                Parent = new StateNode.Link
+                {
+                    Change = CommittingChangeset,
+                    Target = CurrentStateNode
+                }
             };
-            var branch = new StateNode.Branch
+            var branch = new StateNode.Link
             {
                 Change = CommittingChangeset,
                 Target = newNode
@@ -93,13 +129,6 @@
         }
 
         #endregion
-
-        public void Redo(int branchIndex)
-        {
-            var branch = CurrentStateNode.Branches[branchIndex];
-            branch.Change.Redo();
-            CurrentStateNode = branch.Target;
-        }
 
         /// <summary>
         ///  Clear all branches of the current node
@@ -116,9 +145,9 @@
         /// <param name="child">The child to which the branch to spare</param>
         protected void ClearBranchesBut(StateNode node, StateNode child)
         {
-            var changeset = child.ChangeFromParent;
+            var changeset = child.Parent.Change;
             node.Branches.Clear();
-            node.Branches.Add(new StateNode.Branch
+            node.Branches.Add(new StateNode.Link
             {
                 Change = changeset,
                 Target = child
@@ -132,7 +161,7 @@
         {
             CurrentStateNode.Branches.Clear();
             var child = CurrentStateNode;
-            for (var p = CurrentStateNode.Parent; p != null; p = p.Parent)
+            for (var p = CurrentStateNode.Parent.Target; p != null; p = p.Parent.Target)
             {
                 ClearBranchesBut(p, child);
                 child = p;
@@ -144,7 +173,7 @@
         /// </summary>
         public void ClearToNode(StateNode node)
         {
-            node.Parent = null;
+            node.Parent = new StateNode.Link();
             RootNode = node;
         }
 

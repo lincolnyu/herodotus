@@ -6,7 +6,7 @@ namespace Herodotus
     {
         #region Nested types
 
-        public struct Branch
+        public struct Link
         {
             public Changeset Change;
             public StateNode Target;
@@ -18,24 +18,19 @@ namespace Herodotus
 
         public StateNode()
         {
-            Branches = new List<Branch>();
+            Branches = new List<Link>();
         }
 
         #endregion
 
         #region Properties
 
-        public StateNode Parent
+        public Link Parent
         {
             get; set;
         }
 
-        public Changeset ChangeFromParent
-        {
-            get; set;
-        }
-
-        public List<Branch> Branches
+        public List<Link> Branches
         {
             get; private set;
         }
