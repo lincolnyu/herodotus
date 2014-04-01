@@ -110,6 +110,7 @@
   <ItemGroup>
     <Compile Include="Changeset.cs" />
     <Compile Include="CompleteManagerLinearExtension.cs" />
+    <Compile Include="ICollectionChange.cs" />
     <Compile Include="ICompleteChangesetManager.cs" />
     <Compile Include="LinearChangesetManager.cs" />
     <Compile Include="CollectionChange.cs" />

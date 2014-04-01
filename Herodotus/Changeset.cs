@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Reflection;
 
 namespace Herodotus
@@ -149,33 +150,161 @@ namespace Herodotus
         public void Merge()
         {
             var changeMap = new Dictionary<object, Dictionary<string, ITrackedChange>>();
+            var collectionMap = new Dictionary<object, ICollectionChange>();
             var count = Changes.Count;
             for (var i = 0; i < count; i++)
             {
                 var propertyChange = _changes[i] as PropertyChange;
-                if (propertyChange == null) continue;
-                var ownerContained = changeMap.ContainsKey(propertyChange.Owner);
-                var propertyContained = false;
-                if (ownerContained)
+                if (propertyChange != null)
                 {
-                    var changesOfOwner = changeMap[propertyChange.Owner];
-                    propertyContained = changesOfOwner.ContainsKey(propertyChange.Property.Name);
+                    var ownerContained = changeMap.ContainsKey(propertyChange.Owner);
+                    var propertyContained = false;
+                    if (ownerContained)
+                    {
+                        var changesOfOwner = changeMap[propertyChange.Owner];
+                        propertyContained = changesOfOwner.ContainsKey(propertyChange.Property.Name);
+                    }
+                    else
+                    {
+                        changeMap[propertyChange.Owner] = new Dictionary<string, ITrackedChange>();
+                    }
+                    if (!propertyContained)
+                    {
+                        changeMap[propertyChange.Owner][propertyChange.Property.Name] = _changes[i];
+                    }
+                    else
+                    {
+                        var existing = (PropertyChange)changeMap[propertyChange.Owner][propertyChange.Property.Name];
+                        existing.NewValue = propertyChange.NewValue;
+                        _changes.RemoveAt(i);
+                        i--;
+                        count--;
+                    }
+                    continue;
                 }
-                else
+
+                // TODO complete it and debug it
+                var collectionChange = _changes[i] as ICollectionChange;
+                if (collectionChange != null)
                 {
-                    changeMap[propertyChange.Owner] = new Dictionary<string, ITrackedChange>();
-                }
-                if (!propertyContained)
-                {
-                    changeMap[propertyChange.Owner][propertyChange.Property.Name] = _changes[i];
-                }
-                else
-                {
-                    var existing = (PropertyChange)changeMap[propertyChange.Owner][propertyChange.Property.Name];
-                    existing.NewValue = propertyChange.NewValue;
-                    _changes.RemoveAt(i);
-                    i--;
-                    count--;
+                    var collection = collectionChange.Collection;
+                    var collectionContained = collectionMap.ContainsKey(collection);
+                    if (collectionContained)
+                    {
+                        var prevChange = collectionMap[collection];
+                        if (prevChange.Action == collectionChange.Action)
+                        {
+                            switch (prevChange.Action)
+                            {
+                                case NotifyCollectionChangedAction.Add:
+                                {
+                                    if (prevChange.NewStartingIndex < 0 ||
+                                        prevChange.NewStartingIndex + prevChange.NewItems.Count ==
+                                        collectionChange.NewStartingIndex)
+                                    {
+                                        if (prevChange.NewItems.IsReadOnly)
+                                        {
+                                            var newItems = prevChange.NewItems.Cast<object>().ToList();
+                                            newItems.AddRange(collectionChange.NewItems.Cast<object>());
+                                            prevChange.NewItems = newItems;
+                                        }
+                                        else
+                                        {
+                                            foreach (var ni in collectionChange.NewItems)
+                                            {
+                                                prevChange.NewItems.Add(ni);
+                                            }
+                                        }
+                                        collectionChange = null;
+                                    }
+                                    break;
+                                }
+                                case NotifyCollectionChangedAction.Remove:
+                                {
+                                    if (prevChange.NewStartingIndex < 0 ||
+                                        collectionChange.OldStartingIndex + collectionChange.OldItems.Count
+                                        == prevChange.OldStartingIndex)
+                                    {
+                                        prevChange.OldStartingIndex = collectionChange.OldStartingIndex;
+                                        if (collectionChange.OldItems.IsReadOnly)
+                                        {
+                                            var oldItems = collectionChange.OldItems.Cast<object>().ToList();
+                                            oldItems.AddRange(prevChange.OldItems.Cast<object>());
+                                            prevChange.OldItems = oldItems;
+                                        }
+                                        else
+                                        {
+                                            foreach (var oi in prevChange.OldItems)
+                                            {
+                                                collectionChange.OldItems.Add(oi);
+                                            }
+                                            prevChange.OldItems = collectionChange.OldItems;
+                                        }
+                                        collectionChange = null;
+                                    }
+                                    break;
+                                }
+                                case NotifyCollectionChangedAction.Replace:
+                                {
+                                    if (prevChange.OldStartingIndex == collectionChange.OldStartingIndex)
+                                    {
+                                        if (prevChange.NewItems.Count <= collectionChange.NewItems.Count)
+                                        {
+                                            prevChange.NewItems = collectionChange.NewItems;
+                                        }
+                                        else
+                                        {
+                                            if (prevChange.NewItems.IsReadOnly)
+                                            {
+                                                var newItems = collectionChange.NewItems.Cast<object>().ToList();
+                                                for (var j = collectionChange.NewItems.Count;
+                                                    j < prevChange.NewItems.Count;
+                                                    j++)
+                                                {
+                                                    newItems[j] = prevChange.NewItems[j];
+                                                }
+                                                prevChange.NewItems = newItems;
+                                            }
+                                            else
+                                            {
+                                                for (var j = 0; j < collectionChange.NewItems.Count; j++)
+                                                {
+                                                    prevChange.NewItems[j] = collectionChange.NewItems[j];
+                                                }
+                                            }
+                                        }
+                                        collectionChange = null;
+                                    }
+                                    break;
+                                }
+                            }
+                            // TODO other merging conditions   
+                        }
+                        else
+                        {
+                            // TODO other merging conditions
+                            if (prevChange.Action == NotifyCollectionChangedAction.Add &&
+                                collectionChange.Action == NotifyCollectionChangedAction.Remove)
+                            {
+                                // TODO implement it
+                            }
+                            else if (prevChange.Action == NotifyCollectionChangedAction.Remove &&
+                                     collectionChange.Action == NotifyCollectionChangedAction.Add)
+                            {
+                                // TODO implement it
+                            }
+                        }
+                        if (collectionChange == null)
+                        {
+                            _changes.RemoveAt(i);
+                            i--;
+                            count--;
+                        }
+                    }
+                    if (collectionChange != null)
+                    {
+                        collectionMap[collection] = collectionChange;
+                    }
                 }
             }
         }

@@ -4,11 +4,19 @@ using System.Collections.Specialized;
 
 namespace Herodotus
 {
-    public class CollectionChange<T> : ITrackedChange
+    public class CollectionChange<T> : ICollectionChange, ITrackedChange
     {
         #region Properties
 
         public ICollection<T> Collection { get; set; }
+
+        object ICollectionChange.Collection
+        {
+            get
+            {
+                return Collection;
+            }
+        }
 
         public NotifyCollectionChangedAction Action { get; set; }
 
