@@ -8,7 +8,7 @@ namespace Herodotus
 
         public struct Link
         {
-            public Changeset Change;
+            public Changeset Changeset;
             public StateNode Target;
         }
 

@@ -2,17 +2,17 @@
 
 namespace Herodotus
 {
-    internal class PropertyChangeMarker : IDisposable
+    public class PropertyChangeMarker : IDisposable
     {
         #region Fields
 
-        private readonly LinearChangesetManager _changesetManager;
+        private readonly TrackingManager _changesetManager;
 
         #endregion
 
         #region Constructors
 
-        public PropertyChangeMarker(LinearChangesetManager changesetManager, object owner, string propertyName,
+        public PropertyChangeMarker(TrackingManager changesetManager, object owner, string propertyName,
             object targetValue)
         {
             _changesetManager = changesetManager;

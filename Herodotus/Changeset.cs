@@ -15,8 +15,6 @@ namespace Herodotus
         /// </summary>
         private List<ITrackedChange> _changes;
 
-        private readonly TrackingManager _manager;
-
         #endregion
 
         #region Constructors
@@ -28,18 +26,9 @@ namespace Herodotus
         /// <param name="descriptor">An optional Descriptor of the changeset</param>
         public Changeset(TrackingManager manager, object descriptor)
         {
-            _manager = manager;
+            TrackingManager = manager;
 
             Descriptor = descriptor;
-        }
-
-        /// <summary>
-        ///  Creates a changeset owned by default manager
-        /// </summary>
-        /// <param name="descriptor">An optional Descriptor of the changeset</param>
-        public Changeset(object descriptor)
-            : this(TrackingManager.Instance, descriptor)
-        {
         }
 
         #endregion
@@ -59,22 +48,29 @@ namespace Herodotus
         /// </summary>
         public object Descriptor { get; private set; }
 
+        public TrackingManager TrackingManager
+        {
+            get; private set;
+        }
+
         #endregion
 
         #region Methods
 
-        public void AddPropertyChange(object owner, PropertyInfo property, object oldValue, object newValue)
+        public virtual void AddPropertyChange(object owner, PropertyInfo property, object oldValue, object newValue)
         {
-            AddChange(new PropertyChange
+            var change = new PropertyChange
             {
                 Owner = owner,
                 Property = property,
                 NewValue = newValue,
                 OldValue = oldValue
-            });
+            };
+
+            AddChange(change);
         }
 
-        public void OnCollectionChanged<T>(object sender, NotifyCollectionChangedEventArgs e)
+        public virtual void OnCollectionChanged<T>(object sender, NotifyCollectionChangedEventArgs e)
         {
             var change = new CollectionChange<T>
             {
@@ -95,7 +91,7 @@ namespace Herodotus
         /// </summary>
         /// <typeparam name="T">The type of the items in the collection</typeparam>
         /// <param name="collection">The collection to work on</param>
-        public void OnCollectionClearing<T>(ObservableCollection<T> collection)
+        public virtual void OnCollectionClearing<T>(ObservableCollection<T> collection)
         {
             var oldItems = new List<T>();
             oldItems.AddRange(collection);
@@ -115,7 +111,7 @@ namespace Herodotus
         protected void AddChange(ITrackedChange change)
         {
             Changes.Add(change);
-            if (_manager.MergeOnTheGo)
+            if (TrackingManager.MergeOnTheGo)
             {
                 Merge();
             }
@@ -126,9 +122,8 @@ namespace Herodotus
         /// </summary>
         public void Undo()
         {
-            for (var i = Changes.Count - 1; i >= 0; i--)
+            foreach (var change in Changes.Reverse())
             {
-                var change = Changes[i];
                 change.Undo();
             }
         }

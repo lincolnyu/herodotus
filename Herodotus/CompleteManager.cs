@@ -67,7 +67,7 @@
         /// </summary>
         public void Undo()
         {
-            CurrentStateNode.Parent.Change.Undo();
+            CurrentStateNode.Parent.Changeset.Undo();
             CurrentStateNode = CurrentStateNode.Parent.Target;
         }
 
@@ -80,7 +80,7 @@
         public void Redo(int branchIndex)
         {
             var branch = CurrentStateNode.Branches[branchIndex];
-            branch.Change.Redo();
+            branch.Changeset.Redo();
             CurrentStateNode = branch.Target;
         }
 
@@ -112,13 +112,13 @@
             {
                 Parent = new StateNode.Link
                 {
-                    Change = CommittingChangeset,
+                    Changeset = CommittingChangeset,
                     Target = CurrentStateNode
                 }
             };
             var branch = new StateNode.Link
             {
-                Change = CommittingChangeset,
+                Changeset = CommittingChangeset,
                 Target = newNode
             };
             if (CurrentStateNode != null)
@@ -145,11 +145,11 @@
         /// <param name="child">The child to which the branch to spare</param>
         protected void ClearBranchesBut(StateNode node, StateNode child)
         {
-            var changeset = child.Parent.Change;
+            var changeset = child.Parent.Changeset;
             node.Branches.Clear();
             node.Branches.Add(new StateNode.Link
             {
-                Change = changeset,
+                Changeset = changeset,
                 Target = child
             });
         }

@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Reflection;
-using Trollveggen;
 
 namespace Herodotus
 {
@@ -23,12 +22,6 @@ namespace Herodotus
         private PropertyInfo _trackedProperty;
         private object _trackedOldValue;
         private object _trackedNewValue;
-
-
-        /// <summary>
-        ///  Backing field for ChangeManager
-        /// </summary>
-        private static IChangesetManager _instance;
 
         #endregion
 
@@ -63,14 +56,6 @@ namespace Herodotus
         {
             get;
             set;
-        }
-
-        /// <summary>
-        ///  Changeset manager instance retrieved from trollveggen registry
-        /// </summary>
-        public static TrackingManager Instance
-        {
-            get { return (TrackingManager)(_instance ?? (_instance = Factory.Resolve<IChangesetManager>())); }
         }
 
         #endregion
@@ -150,7 +135,7 @@ namespace Herodotus
 
         #endregion
 
-        public int StartChangeset(object descriptor = null)
+        public int StartChangeset(object descriptor = null, IChangesetBuilder changesetBuilder = null)
         {
             lock (this)
             {
@@ -162,12 +147,11 @@ namespace Herodotus
                 {
                     return NestCount;
                 }
-                CommittingChangeset = new Changeset(this, descriptor);
+                CommittingChangeset = changesetBuilder!= null? changesetBuilder.BuildChangeset(this, descriptor) : 
+                    new Changeset(this, descriptor);
                 return NestCount;
             }
         }
-
-        protected abstract void OnCommit();
 
         public int Commit(bool merge = false, bool commitEmpty = false)
         {
@@ -232,6 +216,8 @@ namespace Herodotus
         {
             CommittingChangeset = null;
         }
+
+        protected abstract void OnCommit();
 
         #endregion
     }
