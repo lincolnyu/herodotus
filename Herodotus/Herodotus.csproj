@@ -106,6 +106,7 @@
     <Compile Include="IChangesetBuilder.cs" />
     <Compile Include="ICollectionChange.cs" />
     <Compile Include="ICompleteChangesetManager.cs" />
+    <Compile Include="ITrackingManager.cs" />
     <Compile Include="LinearChangesetManager.cs" />
     <Compile Include="CollectionChange.cs" />
     <Compile Include="CompleteManager.cs" />

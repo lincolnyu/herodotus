@@ -116,6 +116,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ChangeTracking\GlobalPropertyChangeMarker.cs" />
     <Compile Include="ViewModels\ChangesetViewModel.cs" />
     <Compile Include="IManagedShape.cs" />
     <Compile Include="ManagedLine.cs" />

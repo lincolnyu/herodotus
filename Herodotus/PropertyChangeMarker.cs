@@ -6,17 +6,17 @@ namespace Herodotus
     {
         #region Fields
 
-        private readonly TrackingManager _changesetManager;
+        private readonly ITrackingManager _trackingManager;
 
         #endregion
 
         #region Constructors
 
-        public PropertyChangeMarker(TrackingManager changesetManager, object owner, string propertyName,
+        public PropertyChangeMarker(ITrackingManager trackingManager, object owner, string propertyName,
             object targetValue)
         {
-            _changesetManager = changesetManager;
-            changesetManager.TrackPropertyChangeBegin(owner, propertyName, targetValue);
+            _trackingManager = trackingManager;
+            trackingManager.TrackPropertyChangeBegin(owner, propertyName, targetValue);
         }
 
         #endregion
@@ -27,14 +27,14 @@ namespace Herodotus
 
         public void Dispose()
         {
-            _changesetManager.TrackPropertyChangeEnd();
+            _trackingManager.TrackPropertyChangeEnd();
         }
 
         #endregion
 
         public void Cancel()
         {
-            _changesetManager.TrackPropertyChangeCancel();
+            _trackingManager.TrackPropertyChangeCancel();
         }
 
         #endregion

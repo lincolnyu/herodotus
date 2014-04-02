@@ -24,7 +24,7 @@ namespace Herodotus
         /// </summary>
         /// <param name="manager">The changeset manager that owns and manages this changeset</param>
         /// <param name="descriptor">An optional Descriptor of the changeset</param>
-        public Changeset(TrackingManager manager, object descriptor)
+        public Changeset(ITrackingManager manager, object descriptor)
         {
             TrackingManager = manager;
 
@@ -48,7 +48,7 @@ namespace Herodotus
         /// </summary>
         public object Descriptor { get; private set; }
 
-        public TrackingManager TrackingManager
+        public ITrackingManager TrackingManager
         {
             get; private set;
         }

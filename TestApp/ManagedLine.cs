@@ -2,6 +2,7 @@
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Shapes;
 using Herodotus;
+using TestApp.ChangeTracking;
 
 namespace TestApp
 {

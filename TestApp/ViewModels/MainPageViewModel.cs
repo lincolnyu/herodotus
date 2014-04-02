@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using Windows.UI;
 using Windows.UI.Xaml.Media;
 using Herodotus;
+using Trollveggen;
 
 namespace TestApp.ViewModels
 {
@@ -16,6 +17,8 @@ namespace TestApp.ViewModels
 
         private ObservableCollection<ChangesetViewModel> _changesets;
 
+        private static ILinearChangesetManager _changesetManager;
+
         #endregion
 
         #endregion
@@ -24,14 +27,24 @@ namespace TestApp.ViewModels
 
         public MainPageViewModel()
         {
-            ((ILinearChangesetManager)TrackingManager.Instance).Changesets.CollectionChanged += ChangesetCollectionChanged;
-            ((ILinearChangesetManager)TrackingManager.Instance).ChangesetIndexChanged += OnChangesetIndexChanged;
+            ChangesetManager.Changesets.CollectionChanged += ChangesetCollectionChanged;
+            ChangesetManager.ChangesetIndexChanged += OnChangesetIndexChanged;
             ClearChangesetViewModels();
         }
 
         #endregion
 
         #region Properties
+
+        private static ILinearChangesetManager ChangesetManager
+        {
+            get { return _changesetManager ?? (_changesetManager = Factory.Resolve<ILinearChangesetManager>()); }
+        }
+
+        private static ITrackingManager TrackingManager
+        {
+            get { return (ITrackingManager)ChangesetManager; }
+        }
 
         public static MainPageViewModel Instance
         {
@@ -45,20 +58,20 @@ namespace TestApp.ViewModels
 
         public int SelectedChangesetIndex
         {
-            get { return ((ILinearChangesetManager)TrackingManager.Instance).CurrentChangesetIndex; }
+            get { return ChangesetManager.CurrentChangesetIndex; }
         }
 
         public static bool IsTrackingEnabled
         {
-            get { return TrackingManager.Instance.IsTrackingEnabled; }
-            set { TrackingManager.Instance.IsTrackingEnabled = value; }
+            get { return TrackingManager.IsTrackingEnabled; }
+            set { TrackingManager.IsTrackingEnabled = value; }
         }
 
         public bool CanUndo
         {
             get
             {
-                return ((IChangesetManager) TrackingManager.Instance).CanUndo();
+                return ChangesetManager.CanUndo();
             }
         }
 
@@ -66,7 +79,7 @@ namespace TestApp.ViewModels
         {
             get
             {
-                return ((IChangesetManager)TrackingManager.Instance).CanRedo();
+                return ChangesetManager.CanRedo();
             }
         }
         
@@ -79,13 +92,13 @@ namespace TestApp.ViewModels
         {
             if (target >= 0)
             {
-                for (; ((ILinearChangesetManager)TrackingManager.Instance).CurrentChangesetIndex < target; )
+                for (; ChangesetManager.CurrentChangesetIndex < target; )
                 {
-                    ((ILinearChangesetManager)TrackingManager.Instance).Redo();
+                    ChangesetManager.Redo();
                 }
-                for (; ((ILinearChangesetManager)TrackingManager.Instance).CurrentChangesetIndex > target; )
+                for (; ChangesetManager.CurrentChangesetIndex > target; )
                 {
-                    ((ILinearChangesetManager)TrackingManager.Instance).Undo();   
+                    ChangesetManager.Undo();   
                 }
             }
         }
@@ -93,24 +106,24 @@ namespace TestApp.ViewModels
 #if false
         public void RemoveFrom(int index)
         {
-            ((ILinearChangesetManager)TrackingManager.Instance).RemoveFrom(index);
+            ChangesetManager.RemoveFrom(index);
         }
 
         public void RemoveTo(int index)
         {
-            ((ILinearChangesetManager)TrackingManager.Instance).RemoveTo(index);
+            ChangesetManager.RemoveTo(index);
         }
 
         public void ResetChangesets()
         {
-            ((ILinearChangesetManager)TrackingManager.Instance).RemoveAll();
+            ChangesetManager.RemoveAll();
         }
 #endif
 
         private void ClearChangesetViewModels()
         {
             Changesets.Clear();
-            Changesets.Add(new ChangesetViewModel(new Changeset("Initial")));
+            Changesets.Add(new ChangesetViewModel(new Changeset(TrackingManager, "Initial")));
             UpdateColors();
         }
 

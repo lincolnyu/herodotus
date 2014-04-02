@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Herodotus
 {
-    public abstract class TrackingManager
+    public abstract class TrackingManager : ITrackingManager
     {
         #region Fields
 
@@ -27,9 +27,11 @@ namespace Herodotus
 
         #region Properties
 
+        #region ITrackingManager members
+
         public bool IsTrackingEnabled { get; set; }
 
-        public bool SuspendTracking
+        public bool IsTrackingSuspended
         {
             get
             {
@@ -60,7 +62,11 @@ namespace Herodotus
 
         #endregion
 
+        #endregion
+
         #region Methods
+
+        #region ITrackingManager
 
         #region Tracking handlers
 
@@ -68,7 +74,7 @@ namespace Herodotus
         {
             lock (this)
             {
-                if (SuspendTracking || CommittingChangeset == null)
+                if (IsTrackingSuspended || CommittingChangeset == null)
                 {
                     _trackingDepth++;
                     return;
@@ -114,26 +120,23 @@ namespace Herodotus
             }
         }
 
-        private void ClearTrackedProperty()
-        {
-            _trackedObject = null;
-        }
-
         public void OnCollectionChanged<T>(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (CommittingChangeset == null) return;
-            if (SuspendTracking) return;
+            if (IsTrackingSuspended) return;
             CommittingChangeset.OnCollectionChanged<T>(sender, e);
         }
 
         public void OnCollectionClearing<T>(ObservableCollection<T> collection)
         {
             if (CommittingChangeset == null) return;
-            if (SuspendTracking) return;
+            if (IsTrackingSuspended) return;
             CommittingChangeset.OnCollectionClearing(collection);
         }
 
         #endregion
+
+        #region Changeset operations
 
         public int StartChangeset(object descriptor = null, IChangesetBuilder changesetBuilder = null)
         {
@@ -217,7 +220,16 @@ namespace Herodotus
             CommittingChangeset = null;
         }
 
+        #endregion
+
+        #endregion
+
         protected abstract void OnCommit();
+
+        private void ClearTrackedProperty()
+        {
+            _trackedObject = null;
+        }
 
         #endregion
     }

@@ -33,6 +33,13 @@ namespace TestApp
 
         private Line _tempLine;
 
+        private ILinearChangesetManager ChangesetManager { get; set; }
+
+        private ITrackingManager TrackingManager
+        {
+            get { return (ITrackingManager) ChangesetManager; }
+        }
+
         #endregion
 
         #region Constructors
@@ -42,7 +49,9 @@ namespace TestApp
             InitializeComponent();
 
             //Factory.Register<IChangesetManager>(new LinearChangesetManager());
-            Factory.Register<IChangesetManager>(new CompleteManagerLinearExtension());
+            
+            Factory.Register(ChangesetManager = new CompleteManagerLinearExtension());
+            Factory.Register((ITrackingManager)ChangesetManager);
 
             MainCanvas.DoubleTapped += MainCanvasOnDoubleTapped;
             MainCanvas.PointerPressed += MainCanvasOnPointerPressed;
@@ -71,10 +80,10 @@ namespace TestApp
                         MainCanvas.Children.Add(mshape.InnerShape);
                     }
                 }
-                TrackingManager.Instance.OnCollectionChanged<IManagedShape>(sender, args);
+                TrackingManager.OnCollectionChanged<IManagedShape>(sender, args);
             };
 
-            TrackingManager.Instance.IsTrackingEnabled = true;
+            TrackingManager.IsTrackingEnabled = true;
             DataContext = MainPageViewModel.Instance;
         }
 
@@ -109,7 +118,7 @@ namespace TestApp
 
             if (HitTest(pos, out _draggedLine, out _startPoint))
             {
-                TrackingManager.Instance.StartChangeset("Move");
+                TrackingManager.StartChangeset("Move");
             }
             else
             {
@@ -175,7 +184,7 @@ namespace TestApp
             {
                 _draggedLine = null;
                 _pressId = 0;
-                TrackingManager.Instance.Commit(true);
+                TrackingManager.Commit(true);
                 return;
             }
 
@@ -194,7 +203,7 @@ namespace TestApp
             if (Distance(_startX, _startY, endX, endY) > minLineLen)
             {
                 var desc = string.Format("Add Line ({0:0.00},{1:0.00})-({2:0.00},{3:0.00})", _startX, _startY, endX, endY);
-                TrackingManager.Instance.StartChangeset(desc);
+                TrackingManager.StartChangeset(desc);
                 var link = new ManagedLine
                 {
                     X1 = _startX,
@@ -205,7 +214,7 @@ namespace TestApp
 
                 _managedShapes.Add(link);
 
-                TrackingManager.Instance.Commit();
+                TrackingManager.Commit();
             }
 
             _pressId = 0;
@@ -213,17 +222,17 @@ namespace TestApp
 
         private void BtnUndoOnClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            if (((IChangesetManager) TrackingManager.Instance).CanUndo())
+            if (((IChangesetManager) TrackingManager).CanUndo())
             {
-                ((IChangesetManager)TrackingManager.Instance).Undo();    
+                ((IChangesetManager)TrackingManager).Undo();    
             }
         }
 
         private void BtnRedoOnClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            if (((IChangesetManager) TrackingManager.Instance).CanRedo())
+            if (((IChangesetManager) TrackingManager).CanRedo())
             {
-                ((IChangesetManager)TrackingManager.Instance).Redo();    
+                ((IChangesetManager)TrackingManager).Redo();    
             }
         }
 
