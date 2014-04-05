@@ -32,7 +32,6 @@ namespace Herodotus
             }
         }
 
-
         public ObservableCollection<Changeset> Changesets { get; private set; }
 
         #endregion
@@ -45,15 +44,27 @@ namespace Herodotus
 
         #region Methods
 
-        public new void Redo()
+        public override void Undo()
         {
-            base.Redo();
+            base.Undo();
+            CurrentChangesetIndex--;
+        }
+
+        public override void Redo(int branchIndex)
+        {
+            base.Redo(branchIndex);
             CurrentChangesetIndex++;
         }
 
-        public new void Undo()
+        public override void RedoVirtual(int branchIndex)
         {
-            base.Undo();
+            base.RedoVirtual(branchIndex);
+            CurrentChangesetIndex++;
+        }
+
+        public override void UndoVirtual()
+        {
+            base.UndoVirtual();
             CurrentChangesetIndex--;
         }
 

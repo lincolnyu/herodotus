@@ -36,5 +36,33 @@ namespace Herodotus
         }
 
         #endregion
+
+        #region Methods
+
+        /// <summary>
+        ///  Clear the branches of the node and therefore everything
+        ///  down the node
+        /// </summary>
+        public void ClearBranches()
+        {
+            Branches.Clear();
+        }
+
+        /// <summary>
+        ///  Clear all branches except for the branch that leads to the specified child
+        /// </summary>
+        /// <param name="childToKeep">The child to which the branch to spare</param>
+        public void ClearBranchesBut(StateNode childToKeep)
+        {
+            var changeset = childToKeep.Parent.Changeset;
+            Branches.Clear();
+            Branches.Add(new StateNode.Link
+            {
+                Changeset = changeset,
+                Target = childToKeep
+            });
+        }
+
+        #endregion
     }
 }

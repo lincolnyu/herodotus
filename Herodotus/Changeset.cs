@@ -275,6 +275,7 @@ namespace Herodotus
                             }
                             // TODO other merging conditions   
                         }
+/*
                         else
                         {
                             // TODO other merging conditions
@@ -289,6 +290,7 @@ namespace Herodotus
                                 // TODO implement it
                             }
                         }
+ * */
                         if (collectionChange == null)
                         {
                             _changes.RemoveAt(i);

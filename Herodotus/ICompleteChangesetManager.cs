@@ -33,6 +33,22 @@
         /// <param name="branchIndex">The branch to redo</param>
         void RedoVirtual(int branchIndex);
 
+        /// <summary>
+        ///  Clear old branches of the current node and branches of all its ancestors
+        /// </summary>
+        void GoLinear();
+
+        /// <summary>
+        ///  Removes all nodes before the specified node which is then made root
+        /// </summary>
+        void MakeRoot(StateNode node);
+
+        /// <summary>
+        ///  Moves to the specified node on the tree with undos and/or redos
+        /// </summary>
+        /// <param name="target"></param>
+        void MoveTo(StateNode target);
+
         #endregion
     }
 }

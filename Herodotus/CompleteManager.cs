@@ -1,4 +1,6 @@
-﻿namespace Herodotus
+﻿using System.Collections.Generic;
+
+namespace Herodotus
 {
     /// <summary>
     ///  A manager that can potentially keeps all the changes user has made
@@ -57,7 +59,7 @@
         /// <summary>
         ///  Redoes the change set to the most recent child
         /// </summary>
-        public void Redo()
+        public virtual void Redo()
         {
             Redo(CurrentStateNode.Branches.Count - 1);
         }
@@ -65,7 +67,7 @@
         /// <summary>
         ///  Undoes the changeset since parent
         /// </summary>
-        public void Undo()
+        public virtual void Undo()
         {
             CurrentStateNode.Parent.Changeset.Undo();
             CurrentStateNode = CurrentStateNode.Parent.Target;
@@ -77,7 +79,7 @@
         ///  Redoes a specified branch
         /// </summary>
         /// <param name="branchIndex">The branch to redo</param>
-        public void Redo(int branchIndex)
+        public virtual void Redo(int branchIndex)
         {
             var branch = CurrentStateNode.Branches[branchIndex];
             branch.Changeset.Redo();
@@ -87,7 +89,7 @@
         /// <summary>
         ///  Makes a virtual undo (doesn't make changes but change the state/changeset pointer)
         /// </summary>
-        public void UndoVirtual()
+        public virtual void UndoVirtual()
         {
             CurrentStateNode = CurrentStateNode.Parent.Target;
         }
@@ -96,10 +98,71 @@
         ///  Makes a virtual redo (doesn't make changes but change the state/changeset pointer)
         /// </summary>
         /// <param name="branchIndex">The branch to redo</param>
-        public void RedoVirtual(int branchIndex)
+        public virtual void RedoVirtual(int branchIndex)
         {
             var branch = CurrentStateNode.Branches[branchIndex];
             CurrentStateNode = branch.Target;
+        }
+
+        /// <summary>
+        ///  Clear old branches of the current node and branches of all its ancestors
+        /// </summary>
+        public void GoLinear()
+        {
+            if (CurrentStateNode.Branches.Count > 1)
+            {
+                // removes all branches but the recently committed one
+                CurrentStateNode.Branches.RemoveRange(0, CurrentStateNode.Branches.Count - 1);
+            }
+            var child = CurrentStateNode;
+            for (var p = CurrentStateNode.Parent.Target; p != null; p = p.Parent.Target)
+            {
+                p.ClearBranchesBut(child);
+                child = p;
+            }
+        }
+
+        /// <summary>
+        ///  Removes all nodes before the specified node which is then made root
+        /// </summary>
+        public void MakeRoot(StateNode node)
+        {
+            node.Parent = new StateNode.Link();
+            RootNode = node;
+        }
+
+        /// <summary>
+        ///  Moves to the specified node on the tree with undos and/or redos
+        /// </summary>
+        /// <param name="target"></param>
+        public void MoveTo(StateNode target)
+        {
+            if (CurrentStateNode == target)
+            {
+                return;
+            }
+            var pathToAncestor = GetPathTargetToCommonAncestor(CurrentStateNode, target);
+            var ancestor = pathToAncestor[pathToAncestor.Count - 1];
+            while (CurrentStateNode != ancestor)
+            {
+                Undo();
+            }
+            var nodeIndex = pathToAncestor.Count - 2;
+            while (CurrentStateNode != target)
+            {
+                var next = pathToAncestor[nodeIndex];
+
+                for (var branchIndex = 0; branchIndex < CurrentStateNode.Branches.Count; branchIndex++)
+                {
+                    var branch = CurrentStateNode.Branches[branchIndex];
+                    if (branch.Target == next)
+                    {
+                        Redo(branchIndex);
+                        break;
+                    }
+                }
+                nodeIndex--;
+            }
         }
 
         #endregion
@@ -131,59 +194,36 @@
         #endregion
 
         /// <summary>
-        ///  Clear all branches of the current node
+        ///  Returns the path from the target (inclusive) to the common ancestor of source and target
         /// </summary>
-        public void ClearBranches()
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        private List<StateNode>  GetPathTargetToCommonAncestor(StateNode source, StateNode target)
         {
-            ClearFromNode(CurrentStateNode);
-        }
+            var result = new List<StateNode>();
 
-        /// <summary>
-        ///  Clear all branches of the specified node excepts for the branch that leads the specified child
-        /// </summary>
-        /// <param name="node">The node whose branches are to be removed</param>
-        /// <param name="child">The child to which the branch to spare</param>
-        protected void ClearBranchesBut(StateNode node, StateNode child)
-        {
-            var changeset = child.Parent.Changeset;
-            node.Branches.Clear();
-            node.Branches.Add(new StateNode.Link
+            // Adds the nodes from target all the way to the root
+            for (var p = target; p != null; p = p.Parent.Target)
             {
-                Changeset = changeset,
-                Target = child
-            });
-        }
-
-        /// <summary>
-        ///  Clear branches of the current and branches of all its ancestors
-        /// </summary>
-        public void ClearAllBranches()
-        {
-            CurrentStateNode.Branches.Clear();
-            var child = CurrentStateNode;
-            for (var p = CurrentStateNode.Parent.Target; p != null; p = p.Parent.Target)
-            {
-                ClearBranchesBut(p, child);
-                child = p;
+                result.Add(p);
             }
-        }
 
-        /// <summary>
-        ///  Removes all nodes before the specified node
-        /// </summary>
-        public void ClearToNode(StateNode node)
-        {
-            node.Parent = new StateNode.Link();
-            RootNode = node;
-        }
+            var sourceToRoot = new List<StateNode>();
+            for (var p = source; p != null; p = p.Parent.Target)
+            {
+                sourceToRoot.Add(p);
+            }
 
-        /// <summary>
-        ///  Removes everything down the specified node
-        /// </summary>
-        /// <param name="node"></param>
-        public void ClearFromNode(StateNode node)
-        {
-            node.Branches.Clear();
+            // removes the common chain except the closest common ancestor
+            int i, j;
+            for (i = result.Count - 1, j = sourceToRoot.Count - 1; i >= 0 && j >= 0 && result[i] == sourceToRoot[j]; i--, j--)
+            {
+            }
+
+            result.RemoveRange(i+2, result.Count-i-2);
+
+            return result;
         }
 
         #endregion
