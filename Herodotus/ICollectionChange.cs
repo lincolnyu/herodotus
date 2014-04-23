@@ -7,15 +7,15 @@ namespace Herodotus
     {
         #region Properties
 
-        object Collection { get; }
+        object Collection { get; set; }
 
-        NotifyCollectionChangedAction Action { get; }
+        NotifyCollectionChangedAction Action { get; set; }
 
         IList OldItems { get; set; }
 
         IList NewItems { get; set; }
 
-        int NewStartingIndex { get; }
+        int NewStartingIndex { get; set; }
 
         int OldStartingIndex { get; set; }
 

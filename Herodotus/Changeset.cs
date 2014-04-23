@@ -46,11 +46,11 @@ namespace Herodotus
         /// <summary>
         ///  An object that describes the changeset
         /// </summary>
-        public object Descriptor { get; private set; }
+        public object Descriptor { get; set; }
 
         public ITrackingManager TrackingManager
         {
-            get; private set;
+            get; set;
         }
 
         #endregion

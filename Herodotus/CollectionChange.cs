@@ -16,6 +16,10 @@ namespace Herodotus
             {
                 return Collection;
             }
+            set
+            {
+                Collection = (ICollection<T>)value;
+            }
         }
 
         public NotifyCollectionChangedAction Action { get; set; }
@@ -63,9 +67,36 @@ namespace Herodotus
                 }
                 case NotifyCollectionChangedAction.Remove:
                 {
-                    foreach (var item in OldItems)
+                    var list = Collection as IList<T>;
+                    var doneWithIndex = list != null && OldStartingIndex >= 0;
+                    if (doneWithIndex)
                     {
-                        Collection.Remove((T) item);
+                        var index = OldStartingIndex;
+                        foreach (var oldItem in OldItems)
+                        {
+                            var item = list[index];
+                            if (!Equals(item, (T) oldItem))
+                            {
+                                doneWithIndex = false;
+                                OldStartingIndex = -1;//  it's not valid, should notify or log
+                                break;
+                            }
+                            index++;
+                        }
+                        if (doneWithIndex)
+                        {
+                            for (var i = OldStartingIndex + OldItems.Count - 1; i >= OldStartingIndex; i--)
+                            {
+                                list.RemoveAt(i);
+                            }
+                        }
+                    }
+                    if (!doneWithIndex)
+                    {
+                        foreach (var item in OldItems)
+                        {
+                            Collection.Remove((T)item);
+                        }
                     }
                     break;
                 }
@@ -82,13 +113,13 @@ namespace Herodotus
                     }
                     else
                     {
-                        foreach (var item in OldItems)
+                        foreach (var oldItem in OldItems)
                         {
-                            Collection.Remove((T) item);
+                            Collection.Remove((T) oldItem);
                         }
-                        foreach (var item in NewItems)
+                        foreach (var newItem in NewItems)
                         {
-                            Collection.Add((T) item);
+                            Collection.Add((T) newItem);
                         }
                     }
                     break;
@@ -105,7 +136,7 @@ namespace Herodotus
                     break;
                 }
                 case NotifyCollectionChangedAction.Reset:
-                    // So actually this is non-undoable
+                    // So actually this is non-undoable and should be avoided in change tracking
                     Collection.Clear();
                     break;
             }
@@ -119,11 +150,42 @@ namespace Herodotus
             switch (Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    foreach (var item in NewItems)
+                {
+                    var list = Collection as IList<T>;
+                    var doneWithIndex = list != null && NewStartingIndex >= 0;
+                    if (doneWithIndex)
                     {
-                        Collection.Remove((T) item);
+                        var index = NewStartingIndex;
+                        foreach (var newItem in NewItems)
+                        {
+                            var item = list[index];
+                            if (!Equals(item, (T)newItem))
+                            {
+                                doneWithIndex = false;
+                                NewStartingIndex = -1;//    it's not valid, should notify or log
+                                break;
+                            }
+                            index++;
+                        }
+                        if (doneWithIndex)
+                        {
+                            for (var i = NewStartingIndex + NewItems.Count - 1; i >= NewStartingIndex; i--)
+                            {
+                                list.RemoveAt(i);
+                            }
+                        }
                     }
+
+                    if (!doneWithIndex)
+                    {
+                        foreach (var newItem in NewItems)
+                        {
+                            Collection.Remove((T)newItem);
+                        }
+                    }
+
                     break;
+                }
                 case NotifyCollectionChangedAction.Remove:
                     if (Collection is IList<T>)
                     {
@@ -165,15 +227,14 @@ namespace Herodotus
                     }
                     else
                     {
-                        foreach (var item in NewItems)
+                        foreach (var newItem in NewItems)
                         {
-                            Collection.Remove((T) item);
+                            Collection.Remove((T) newItem);
                         }
-                        foreach (var item in OldItems)
+                        foreach (var oldItem in OldItems)
                         {
-                            Collection.Add((T) item);
+                            Collection.Add((T) oldItem);
                         }
-
                     }
                     break;
                 }

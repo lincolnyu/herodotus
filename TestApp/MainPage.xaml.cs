@@ -53,6 +53,8 @@ namespace TestApp
             Factory.Register(ChangesetManager = new CompleteManagerLinearExtension());
             Factory.Register((ITrackingManager)ChangesetManager);
 
+            ((ICompleteChangesetManager)ChangesetManager).Reinitialize();
+
             MainCanvas.DoubleTapped += MainCanvasOnDoubleTapped;
             MainCanvas.PointerPressed += MainCanvasOnPointerPressed;
             MainCanvas.PointerMoved += MainCanvasOnPointerMoved;

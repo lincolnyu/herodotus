@@ -7,19 +7,6 @@ namespace Herodotus
     /// </summary>
     public class CompleteManager : TrackingManager, ICompleteChangesetManager
     {
-        #region Constructors
-
-        /// <summary>
-        ///  Instantiates and initialises a CompleteManager object
-        /// </summary>
-        public CompleteManager()
-        {
-            RootNode = new StateNode();
-            CurrentStateNode = RootNode;
-        }
-
-        #endregion
-
         #region Properties
 
         /// <summary>
@@ -27,7 +14,7 @@ namespace Herodotus
         /// </summary>
         public StateNode CurrentStateNode
         {
-            get; private set;
+            get; set;
         }
 
         /// <summary>
@@ -35,7 +22,7 @@ namespace Herodotus
         /// </summary>
         public StateNode RootNode
         {
-            get; private set;
+            get; set;
         }
 
         #endregion
@@ -74,6 +61,12 @@ namespace Herodotus
         }
 
         #endregion
+
+        public virtual void Reinitialize()
+        {
+            RootNode = BuildStateNode();
+            CurrentStateNode = RootNode;
+        }
 
         /// <summary>
         ///  Redoes a specified branch
@@ -127,7 +120,7 @@ namespace Herodotus
         /// </summary>
         public void MakeRoot(StateNode node)
         {
-            node.Parent = new StateNode.Link();
+            node.Parent = default(StateNode.Link);
             RootNode = node;
         }
 
@@ -171,14 +164,13 @@ namespace Herodotus
 
         protected override void OnCommit()
         {
-            var newNode = new StateNode
+            var newNode = BuildStateNode();
+            newNode.Parent = new StateNode.Link
             {
-                Parent = new StateNode.Link
-                {
-                    Changeset = CommittingChangeset,
-                    Target = CurrentStateNode
-                }
+                Changeset = CommittingChangeset,
+                Target = CurrentStateNode
             };
+
             var branch = new StateNode.Link
             {
                 Changeset = CommittingChangeset,
@@ -192,6 +184,15 @@ namespace Herodotus
         }
 
         #endregion
+
+        /// <summary>
+        ///  Creates a new state node of the type wanted with its default settings 
+        /// </summary>
+        /// <returns>The bran new state node</returns>
+        protected virtual StateNode BuildStateNode()
+        {
+            return new StateNode();
+        }
 
         /// <summary>
         ///  Returns the path from the target (inclusive) to the common ancestor of source and target

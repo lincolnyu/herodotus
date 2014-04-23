@@ -4,7 +4,7 @@
     {
         #region Methods
 
-        Changeset BuildChangeset(TrackingManager trackingManager, object descriptor);
+        Changeset BuildChangeset(ITrackingManager trackingManager, object descriptor);
 
         #endregion
     }
