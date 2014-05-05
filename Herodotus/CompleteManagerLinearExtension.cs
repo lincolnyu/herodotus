@@ -26,9 +26,11 @@ namespace Herodotus
             get { return _currentChangesetIndex; }
             set
             {
-                if (_currentChangesetIndex == value) return;
-                _currentChangesetIndex = value;
-                OnChangesetIndexChanged();
+                if (_currentChangesetIndex != value)
+                {
+                    _currentChangesetIndex = value;
+                    OnChangesetIndexChanged();
+                }
             }
         }
 
@@ -43,6 +45,13 @@ namespace Herodotus
         #endregion
 
         #region Methods
+
+        public override void Reinitialize()
+        {
+            base.Reinitialize();
+            CurrentChangesetIndex = 0;
+            Changesets.Clear();
+        }
 
         public override void Undo()
         {

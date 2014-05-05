@@ -17,13 +17,13 @@
         #region Methods
 
         /// <summary>
-        ///  Reset the changeset manager by creating a new root node and 
+        ///  Reset the changeset manager by creating a new isolated root node and 
         ///  setting the current state pointer to the node
         /// </summary>
         /// <remarks>
         ///  This method must be invoked before the manager is ready for functioning
         /// </remarks>
-        void Reinitialize();
+        new void Reinitialize();
 
         /// <summary>
         ///  Redoes a specified branch

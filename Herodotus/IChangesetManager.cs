@@ -8,6 +8,11 @@
         #region Methods
 
         /// <summary>
+        ///  Clear and reinitialize the changsetmanager
+        /// </summary>
+        void Reinitialize();
+
+        /// <summary>
         ///  If there's succeeding change that can be redone
         /// </summary>
         /// <returns>True if it can be redone</returns>

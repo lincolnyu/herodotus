@@ -70,6 +70,13 @@ namespace Herodotus
             CurrentChangesetIndex = Changesets.Count;
         }
 
+        public void Reinitialize()
+        {
+            Changesets.Clear();
+            _currentChangesetIndex = 0;
+            _suppressIndexChangedEvent = false;
+        }
+
         public bool CanRedo()
         {
             return (CurrentChangesetIndex < Changesets.Count);
