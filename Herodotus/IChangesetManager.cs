@@ -8,7 +8,9 @@
         #region Methods
 
         /// <summary>
-        ///  Clear and reinitialize the changsetmanager
+        ///  Clears and reinitializes the changsetmanager.
+        ///  Be sure to always call this before using the manager. As some implementations
+        ///  need to be explicitly initialized before use.
         /// </summary>
         void Reinitialize();
 

@@ -17,15 +17,6 @@
         #region Methods
 
         /// <summary>
-        ///  Reset the changeset manager by creating a new isolated root node and 
-        ///  setting the current state pointer to the node
-        /// </summary>
-        /// <remarks>
-        ///  This method must be invoked before the manager is ready for functioning
-        /// </remarks>
-        new void Reinitialize();
-
-        /// <summary>
         ///  Redoes a specified branch
         /// </summary>
         /// <param name="branchIndex">The branch to redo</param>
