@@ -16,7 +16,10 @@ namespace Herodotus
             object targetValue)
         {
             _trackingManager = trackingManager;
-            trackingManager.TrackPropertyChangeBegin(owner, propertyName, targetValue);
+            if (trackingManager != null)
+            {
+                trackingManager.TrackPropertyChangeBegin(owner, propertyName, targetValue);
+            }
         }
 
         #endregion
@@ -27,14 +30,20 @@ namespace Herodotus
 
         public void Dispose()
         {
-            _trackingManager.TrackPropertyChangeEnd();
+            if (_trackingManager != null)
+            {
+                _trackingManager.TrackPropertyChangeEnd();
+            }
         }
 
         #endregion
 
         public void Cancel()
         {
-            _trackingManager.TrackPropertyChangeCancel();
+            if (_trackingManager != null)
+            {
+                _trackingManager.TrackPropertyChangeCancel();
+            }
         }
 
         #endregion
