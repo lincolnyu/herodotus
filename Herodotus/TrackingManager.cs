@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Reflection;
 
@@ -127,7 +127,7 @@ namespace Herodotus
             CommittingChangeset.OnCollectionChanged<T>(sender, e);
         }
 
-        public void OnCollectionClearing<T>(ObservableCollection<T> collection)
+        public void OnCollectionClearing<T>(ICollection<T> collection)
         {
             if (CommittingChangeset == null) return;
             if (IsTrackingSuspended) return;

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 
@@ -8,7 +9,7 @@ namespace Herodotus
     {
         #region Properties
 
-        public ICollection<T> Collection { get; set; }
+        #region ICollectionChange members
 
         object ICollectionChange.Collection
         {
@@ -31,6 +32,18 @@ namespace Herodotus
         public int NewStartingIndex { get; set; }
 
         public int OldStartingIndex { get; set; }
+
+        public Type ItemType
+        {
+            get
+            {
+                return typeof (T);
+            }
+        }
+
+        #endregion
+
+        public ICollection<T> Collection { get; set; }
 
         #endregion
 

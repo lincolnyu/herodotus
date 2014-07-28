@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 
 namespace Herodotus
@@ -74,7 +74,7 @@ namespace Herodotus
         /// </summary>
         /// <typeparam name="T">The type of the items in the collection</typeparam>
         /// <param name="collection">The collection whose changes are to be handled</param>
-        void OnCollectionClearing<T>(ObservableCollection<T> collection);
+        void OnCollectionClearing<T>(ICollection<T> collection);
 
         #endregion
 

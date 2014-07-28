@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Specialized;
 
 namespace Herodotus
@@ -18,6 +19,8 @@ namespace Herodotus
         int NewStartingIndex { get; set; }
 
         int OldStartingIndex { get; set; }
+
+        Type ItemType { get; }
 
         #endregion
     }
