@@ -212,6 +212,33 @@ namespace Herodotus
         }
 
         /// <summary>
+        ///  This returns from the left the first item that satisfies index + at &lt; <paramref name="indices"/>[at]
+        /// </summary>
+        /// <param name="indices">The list of indices</param>
+        /// <param name="index">The target index</param>
+        /// <returns>The position where the criterion is first satisfied</returns>
+        private int ExtendedBinarySearch(IList<int> indices, int index)
+        {
+            var low = 0;
+            var high = indices.Count;
+            // find the first one that satisfies index+at < indices[at]
+            for (; low < high;)
+            {
+                var at = (low + high) / 2;
+                var v = indices[at];
+                if (index + at < v)
+                {
+                    high = at;
+                }
+                else if (index + at >= v)
+                {
+                    low = at + 1;
+                }
+            }
+            return high;
+        }
+
+        /// <summary>
         ///  Merges changes to the same properties on the same object
         /// </summary>
         /// <remarks>
@@ -258,7 +285,6 @@ namespace Herodotus
                     continue;
                 }
 
-                // TODO complete it and debug it
                 var collectionChange = change as ICollectionChange;
                 if (collectionChange != null)
                 {
@@ -279,7 +305,6 @@ namespace Herodotus
                 merged.AddLast(change);
             }
 
-            // TODO post-process
             PostProcess(merged);
 
             _changes.Clear();
@@ -351,14 +376,7 @@ namespace Herodotus
                         int index2;
                         if (r != null)
                         {
-                            // TODO optimize it with extended binary search
-                            for (at = 0; at < r.Indices.Count; at++)
-                            {
-                                if (index + at < r.Indices[at])
-                                {
-                                    break;
-                                }
-                            }
+                            at = ExtendedBinarySearch(r.Indices, index);
                             index2 = index + at;
                         }
                         else
@@ -415,14 +433,7 @@ namespace Herodotus
                             int index2;
                             if (r != null)
                             {
-                                // TODO optimize it with extended binary search
-                                for (at = 0; at < r.Indices.Count; at++)
-                                {
-                                    if (index + at < r.Indices[at])
-                                    {
-                                        break;
-                                    }
-                                }
+                                at = ExtendedBinarySearch(r.Indices, index);
                                 index2 = index + at;
                             }
                             else
@@ -476,14 +487,7 @@ namespace Herodotus
                             removeMap[collection] = (additions != null) ?  merged.AddAfter(additions, r) :  merged.AddLast(r);
                         }
 
-                        // TODO optimize it with extended binary search
-                        for (at = 0; at < r.Indices.Count; at++)
-                        {
-                            if (index + at < r.Indices[at])
-                            {
-                                break;
-                            }
-                        }
+                        at = ExtendedBinarySearch(r.Indices, index);
 
                         r.Indices.Insert(at, index + at);
                         r.IndexToObject[index + at] = oldItem;
