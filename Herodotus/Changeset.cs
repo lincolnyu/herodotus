@@ -696,7 +696,7 @@ namespace Herodotus
                 if (setChange != null)
                 {
                     // check if the next is the paired set change
-                    var next = n.Next.Value as SetChange;
+                    var next = n.Next != null ? n.Next.Value as SetChange : null;
                     ICollectionChange changeToAdd;
                     if (next != null && next.Collection == setChange.Collection)
                     {
@@ -707,8 +707,8 @@ namespace Herodotus
                         changeToAdd.NewItems = setChange.Items.ToList();
                         changeToAdd.OldItems = next.Items.ToList();
                         nextNode = n.Next.Next;
-                        merged.Remove(n);
                         merged.Remove(n.Next);
+                        merged.Remove(n);
                     }
                     else if (setChange.Action == NotifyCollectionChangedAction.Add)
                     {
