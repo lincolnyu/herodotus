@@ -28,7 +28,7 @@ namespace Herodotus
 
         #region IDisposable Members
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (_trackingManager != null)
             {

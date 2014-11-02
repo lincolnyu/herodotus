@@ -57,7 +57,7 @@ namespace Herodotus
         ///  Cancels a property change tracking (so no changes will be recorded upon the call to TrackPropertyChangeEnd())
         /// </summary>
         /// <remarks>
-        ///  NOTE It doesn't undo the substative change to the real property value
+        ///  NOTE It doesn't undo the actual change made to the real property value
         /// </remarks>
         void TrackPropertyChangeCancel();
 
